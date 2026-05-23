@@ -2,6 +2,7 @@ import TimbiHeader from "@/components/TimbiHeader";
 import MapPreview from "@/components/MapPreview";
 import FoodCard from "@/components/FoodCard";
 import HeroSection from "@/components/HeroSection";
+import TodaysFoodSection from "@/components/TodaysFoodSection";
 
 export default function Home() {
   return (
@@ -11,13 +12,11 @@ export default function Home() {
 
         <HeroSection />
 
-        <section className="flex flex-col items-center gap-6 px-4 pt-4">
-        <section className="flex gap-4 overflow-x-auto pb-2">
-          
-        </section>
+         <TodaysFoodSection />
 
-        <MapPreview />
-        </section>
+
+    
+       
 
       
     </main>
