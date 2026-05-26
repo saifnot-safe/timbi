@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import FoodCard from "./FoodCard";
 import Image from "next/image";
+import { foodEvents } from "@/data/foodEvents";
 
 export default function TodaysFoodSection() {
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -39,10 +40,10 @@ function scrollLeft() {
 }
 
   return (
-    <section className="px-8 py-16">
-      <div className="mx-auto max-w-6xl">
-        <h2 className="mb-6 text-4xl font-bold text-[#DA7625]">
-          Today&apos;s food
+    <section id="todays-food" className="mx-auto max-w-6xl overflow-visible px-8 py-18 ">
+    
+        <h2 className="text-5xl font-bold text-[#DA7625]">
+          Today&apos;s menu
         </h2>
 
         <div className="relative">
@@ -51,7 +52,7 @@ function scrollLeft() {
             className="absolute left-[-100px] top-1/2 z-10 flex -translate-y-1/2 items-center transition hover:scale-105"
           >
               <Image
-                src="/timbi/timbi-arrow.png"
+                src="/Icons/timbi-arrow.png"
                 alt="scroll left"
                 width={100}
                 height={100}
@@ -61,33 +62,15 @@ function scrollLeft() {
 
           <div
             ref={scrollRef}
-            className="flex gap-6 overflow-x-auto scroll-smooth pb-4 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-          >
+className="flex gap-16 overflow-x-auto overflow-y-hidden scroll-smooth px-12 pt-12 pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"          >
+           {foodEvents.map((event) => (
             <FoodCard
-              title="Pizza"
-              location="Engineering Atrium"
-              time="Ends at 2:30 PM"
+                key={event.id}
+                title={event.title}
+                location={event.location}
+                time={event.endTime}
             />
-            <FoodCard
-              title="Pizza"
-              location="Engineering Atrium"
-              time="Ends at 2:30 PM"
-            />
-            <FoodCard
-              title="Pizza"
-              location="Engineering Atrium"
-              time="Ends at 2:30 PM"
-            />
-            <FoodCard
-              title="Donuts"
-              location="Weldon Library"
-              time="Ends at 4:00 PM"
-            />
-            <FoodCard
-              title="Coffee"
-              location="UCC"
-              time="Ends at 5:00 PM"
-            />
+            ))}
           </div>
 
           <button
@@ -95,7 +78,7 @@ function scrollLeft() {
             className="absolute right-[-100px] top-1/2 z-10 flex -translate-y-1/2 items-center transition hover:scale-105"
           >
               <Image
-                src="/timbi/timbi-arrow.png"
+                src="/Icons/timbi-arrow.png"
                 alt="scroll right"
                 width={100}
                 height={100}
@@ -103,7 +86,7 @@ function scrollLeft() {
   
           </button>
         </div>
-      </div>
+     
     </section>
   );
 }

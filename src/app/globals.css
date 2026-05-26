@@ -19,6 +19,49 @@
   }
 }
 
+@keyframes card-swing {
+  0% {
+    transform: rotate(0deg);
+  }
+  30% {
+    transform: rotate(1.5deg);
+  }
+  60% {
+    transform: rotate(-0.8deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.timbi-input {
+  width: 100%;
+  border-radius: 1rem;
+  background: #fffdf8;
+  padding: 1rem 1.25rem;
+  color: #5f3d26;
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(218, 118, 37, 0.18);
+}
+
+.timbi-input::placeholder {
+  color: #b28b6b;
+}
+
+.timbi-input:focus {
+  box-shadow: inset 0 0 0 2px rgba(218, 118, 37, 0.55);
+}
+
+.animate-card-swing {
+  animation: card-swing 550ms ease-out;
+}
+
+.animate-card-swing {
+  animation: card-swing 350ms ease-out;
+}
+
+
+
 body {
   background: var(--background);
   color: var(--foreground);
