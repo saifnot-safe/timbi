@@ -56,8 +56,10 @@
   animation: card-swing 550ms ease-out;
 }
 
-.animate-card-swing {
-  animation: card-swing 350ms ease-out;
+
+.timbi-sticker {
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.14));
+  
 }
 
 

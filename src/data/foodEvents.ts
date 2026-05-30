@@ -1,8 +1,11 @@
+import { BuildingId } from "./buildings";
+import { FoodId } from "./foodCategories";
 
 export type FoodEvent = {
   id: number;
   title: string;
-  location: string;
+  food: FoodId;
+  building: BuildingId;
   endTime: string;
   description?: string;
   reporter?: string;
@@ -13,19 +16,22 @@ export const foodEvents: FoodEvent[] = [
   {
     id: 1,
     title: "Pizza",
-    location: "Engineering Atrium",
+    food: "pizza",
+    building: "aceb",
     endTime: "Ends at 2:30 PM",
   },
   {
     id: 2,
     title: "Donuts",
-    location: "Weldon Library",
+    food: "baked",
+    building: "weldon",
     endTime: "Ends at 4:00 PM",
   },
   {
     id: 3,
     title: "Coffee",
-    location: "UCC",
+    food: "coffee",
+    building: "ucc",
     endTime: "Ends at 5:00 PM",
   },
 ];

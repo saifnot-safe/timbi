@@ -40,16 +40,16 @@ function scrollLeft() {
 }
 
   return (
-    <section id="todays-food" className="mx-auto max-w-6xl overflow-visible px-8 py-18 ">
+    <section id="todays-food" className="mx-auto max-w-6xl overflow-visible px-16 py-18 ">
     
         <h2 className="text-5xl font-bold text-[#DA7625]">
-          Today&apos;s menu
+          Today&apos;s Finds
         </h2>
 
         <div className="relative">
             <button
             onClick={scrollLeft}
-            className="absolute left-[-100px] top-1/2 z-10 flex -translate-y-1/2 items-center transition hover:scale-105"
+            className="absolute left-[-55px] top-1/2 z-10 flex -translate-y-1/2 items-center transition hover:scale-105"
           >
               <Image
                 src="/Icons/timbi-arrow.png"
@@ -62,12 +62,12 @@ function scrollLeft() {
 
           <div
             ref={scrollRef}
-className="flex gap-16 overflow-x-auto overflow-y-hidden scroll-smooth px-12 pt-12 pb-6 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"          >
+            className="flex gap-16 overflow-x-auto overflow-y-hidden scroll-smooth px-20 pt-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"          >
            {foodEvents.map((event) => (
             <FoodCard
                 key={event.id}
                 title={event.title}
-                location={event.location}
+                location={event.building}
                 time={event.endTime}
             />
             ))}
@@ -75,7 +75,7 @@ className="flex gap-16 overflow-x-auto overflow-y-hidden scroll-smooth px-12 pt-
 
           <button
             onClick={scrollRight}
-            className="absolute right-[-100px] top-1/2 z-10 flex -translate-y-1/2 items-center transition hover:scale-105"
+            className="absolute right-[-55px] top-1/2 z-10 flex -translate-y-1/2 items-center transition hover:scale-105"
           >
               <Image
                 src="/Icons/timbi-arrow.png"
