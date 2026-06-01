@@ -4,8 +4,13 @@ import { useRef } from "react";
 import FoodCard from "./FoodCard";
 import Image from "next/image";
 import { foodEvents } from "@/data/foodEvents";
+import { buildings } from "@/data/buildings"
 
-export default function TodaysFoodSection() {
+type TodaysFoodSectionProps = {
+  onSelectEvent: (eventId: number | null) => void;
+};
+
+export default function TodaysFoodSection({onSelectEvent}: TodaysFoodSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const SCROLL_AMOUNT = 312;
 
@@ -64,12 +69,20 @@ function scrollLeft() {
             ref={scrollRef}
             className="flex gap-16 overflow-x-auto overflow-y-hidden scroll-smooth px-20 pt-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"          >
            {foodEvents.map((event) => (
-            <FoodCard
-                key={event.id}
-                title={event.title}
-                location={event.building}
-                time={event.endTime}
-            />
+          <FoodCard
+          key={event.id}
+          title={event.title}
+          location={buildings[event.building].shortName}
+          time={`${event.startTime} - ${event.endTime}`}
+          onClick={() => {
+            onSelectEvent(event.id)
+
+            document.getElementById("campus-map")?.scrollIntoView({
+              behavior: "smooth",
+              block: "center",
+            })
+          }}
+/>
             ))}
           </div>
 

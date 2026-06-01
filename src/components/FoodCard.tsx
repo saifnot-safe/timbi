@@ -9,10 +9,13 @@ type FoodCardProps = {
   title: string
   location: string
   time: string
+  onClick?: () => void
 }
 
-export default function FoodCard({ title, location, time }: FoodCardProps) {
+export default function FoodCard({ title, location, time, onClick }: FoodCardProps) {
+
   const cardRef = useRef<HTMLDivElement>(null)
+  
 
   const swing = () => {
     const card = cardRef.current
@@ -22,6 +25,7 @@ export default function FoodCard({ title, location, time }: FoodCardProps) {
     void card.offsetWidth
     card.classList.add("animate-card-swing")
   }
+
 
   useEffect(() => {
     const card = cardRef.current
@@ -44,9 +48,9 @@ export default function FoodCard({ title, location, time }: FoodCardProps) {
   }, [])
 
   return (
-    <article className="relative h-56 w-60 shrink-0">
+    <article className="relative h-56 w-60 shrink-0" onClick={onClick}>
       <div
-        ref={cardRef}
+        ref={cardRef}   
         className="relative h-full w-full transition-transform duration-300 hover:translate-y-1"
         style={{
           transformOrigin: "50% 12px",

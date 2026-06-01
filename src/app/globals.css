@@ -57,11 +57,15 @@
 }
 
 
-.timbi-sticker {
+.timbi-map-sticker {
   filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.14));
   
 }
 
+
+.timbi-popup .leaflet-popup-content {
+  margin: 12px 12px;
+}
 
 
 body {
