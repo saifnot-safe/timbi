@@ -6,13 +6,14 @@ import Image from "next/image"
 import { useEffect, useRef } from "react"
 
 type FoodCardProps = {
-  title: string
+  event: string
+  food: string
   location: string
   time: string
   onClick?: () => void
 }
 
-export default function FoodCard({ title, location, time, onClick }: FoodCardProps) {
+export default function FoodCard({ event, food, location, time, onClick }: FoodCardProps) {
 
   const cardRef = useRef<HTMLDivElement>(null)
   
@@ -70,8 +71,9 @@ export default function FoodCard({ title, location, time, onClick }: FoodCardPro
 />
 
   <div className="absolute left-8 top-3 z-10">
-    <h3 className="text-3xl font-bold text-[#5f3d26]">{title}</h3>
-    <p className="text-xl  text-[#5f3d26]">{location}</p>
+    <h3 className="text-2xl font-bold text-[#5f3d26] line-clamp-1">{event}</h3>
+     <p className="text-xl  text-[#5f3d26]">{food}</p>
+    <p className="text-base  text-[#5f3d26]">{location}</p>
     <p className="text-base  text-[#FFA353]">{time}</p>
   </div>
   </div>

@@ -4,9 +4,19 @@ import { useState } from "react";
 import Timbi from "./Timbi";
 import TimbiTitle from "./TimbiTitle";
 import PostFoodModal from "./PostFoodModal";
+import { SignInButton, useUser } from "@clerk/nextjs";
 
 export default function HeroSection() {
     const [isPostOpen, setIsPostOpen] = useState(false);
+    const { isSignedIn, user } = useUser();
+
+    const email = user?.primaryEmailAddress?.emailAddress.toLowerCase();
+    const canPost = email?.endsWith("@uwo.ca");
+    const postButtonClass = "rounded-2xl bg-[#DA7625] px-6 py-5 w-48 text-xl font-semibold text-white shadow-md transition hover:scale-105";
+
+
+
+
   return (
     <section className="mx-auto flex min-h-[85vh] max-w-7xl items-center justify-between px-16">
       <div>
@@ -16,7 +26,7 @@ export default function HeroSection() {
           next meal
         </h1>
 
-        <div className="mt-8 flex gap-4">
+  <div className="mt-8 flex gap-4">
   <button onClick={() => {
      document.getElementById("todays-food")
       ?.scrollIntoView({ behavior: "smooth" })
@@ -24,9 +34,23 @@ export default function HeroSection() {
     Find Food
   </button>
 
-  <button onClick={() => setIsPostOpen(true)} className="rounded-2xl bg-[#DA7625] px-8 py-5 text-xl font-semibold text-white transition hover:scale-105">
+{!isSignedIn ? (
+  <SignInButton mode="modal">
+    <button className={postButtonClass}>
+      Post Food
+    </button>
+  </SignInButton>
+) : canPost ? (
+    <button onClick={() => setIsPostOpen(true)} className={postButtonClass}>
     Post Food
   </button>
+)  : (
+  <button className={postButtonClass}
+    onClick={() => alert("Timbi only accepts posts from @uwo.ca emails :(")}
+  >   Post Food
+  </button>
+)}
+
 </div>
 </div>
 
@@ -34,7 +58,7 @@ export default function HeroSection() {
    <Timbi size={420} className="scale-x-[-1]" />
  </div>
 
- <PostFoodModal isOpen = {isPostOpen} onClose={() => setIsPostOpen(false)}/>
+ <PostFoodModal isOpen = {isPostOpen} onClose={() => setIsPostOpen(false)} onEventCreated={() => {}} />
 
 </section>
     

@@ -71,7 +71,8 @@ function scrollLeft() {
            {foodEvents.map((event) => (
           <FoodCard
           key={event.id}
-          title={event.title}
+          event={event.eventName || "Unnamed Event"}
+          food = {event.food}
           location={buildings[event.building].shortName}
           time={`${event.startTime} - ${event.endTime}`}
           onClick={() => {

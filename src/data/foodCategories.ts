@@ -1,4 +1,4 @@
-export const foods = {
+export const categories = {
     pizza: {
         name: "Pizza",
         icon: "/pins/pizza.png",
@@ -25,4 +25,4 @@ export const foods = {
     }
 };
 
-export type FoodId = keyof typeof foods;
+export type FoodCategory = keyof typeof categories;

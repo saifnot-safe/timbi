@@ -7,6 +7,7 @@ import TodaysFoodSection from "@/components/TodaysFoodSection";
 import dynamic from "next/dynamic"
 import { useState } from "react";
 
+
 const TimbiMap = dynamic(() => import("@/components/TimbiMap"), {
   ssr: false,
 })
