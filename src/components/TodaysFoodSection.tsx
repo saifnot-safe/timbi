@@ -3,14 +3,17 @@
 import { useRef } from "react";
 import FoodCard from "./FoodCard";
 import Image from "next/image";
-import { foodEvents } from "@/data/foodEvents";
+import type { FoodEvent } from "@/types/FoodEvent";
 import { buildings } from "@/data/buildings"
 
 type TodaysFoodSectionProps = {
   onSelectEvent: (eventId: number | null) => void;
+  events: FoodEvent[];
+  selectedEventId: number | null
+  
 };
 
-export default function TodaysFoodSection({onSelectEvent}: TodaysFoodSectionProps) {
+export default function TodaysFoodSection({onSelectEvent, events, selectedEventId}: TodaysFoodSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const SCROLL_AMOUNT = 312;
 
@@ -68,7 +71,7 @@ function scrollLeft() {
           <div
             ref={scrollRef}
             className="flex gap-16 overflow-x-auto overflow-y-hidden scroll-smooth px-20 pt-10 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"          >
-           {foodEvents.map((event) => (
+           {events.map((event) => (
           <FoodCard
           key={event.id}
           event={event.eventName || "Unnamed Event"}

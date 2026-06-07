@@ -3,23 +3,26 @@ import { Nunito } from "next/font/google";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet"
 import "leaflet/dist/leaflet.css"
 import L from "leaflet"
-import { foodEvents } from "@/data/foodEvents"
+import type { FoodEvent } from "@/types/FoodEvent";
 import { buildings } from "@/data/buildings"
 import { categories } from "@/data/foodCategories"
 import { useEffect, useRef } from "react"
 import type { Marker as LeafletMarker, Map as LeafletMap } from "leaflet"
 
  type TimbiMapProps = {
+  events: FoodEvent[];
   selectedEventId: number | null
   onSelectEvent: (eventId: number|null) => void
+
 }
+
 
   const nunito = Nunito({
   subsets: ["latin"],
 });
  
 
-export default function TimbiMap({selectedEventId, onSelectEvent,}: TimbiMapProps) {
+export default function TimbiMap({events,selectedEventId, onSelectEvent,}: TimbiMapProps) {
 
 
 
@@ -28,7 +31,7 @@ const markerRefs = useRef<Record<number, LeafletMarker | null>>({})
 
 
 
-const selectedEvent = foodEvents.find(
+const selectedEvent = events.find(
   event => event.id === selectedEventId
 )
 
@@ -74,7 +77,7 @@ useEffect(() => {
             url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
         />        
 
-  {foodEvents.map((event) => {
+  {events.map((event) => {
   const building = buildings[event.building]
   const food = categories[event.category]
 

@@ -6,7 +6,11 @@ import TimbiTitle from "./TimbiTitle";
 import PostFoodModal from "./PostFoodModal";
 import { SignInButton, useUser } from "@clerk/nextjs";
 
-export default function HeroSection() {
+type HeroSectionProps = {
+  onEventCreated: () => void;
+}
+
+export default function HeroSection({ onEventCreated }: HeroSectionProps) {
     const [isPostOpen, setIsPostOpen] = useState(false);
     const { isSignedIn, user } = useUser();
 
@@ -58,7 +62,10 @@ export default function HeroSection() {
    <Timbi size={420} className="scale-x-[-1]" />
  </div>
 
- <PostFoodModal isOpen = {isPostOpen} onClose={() => setIsPostOpen(false)} onEventCreated={() => {}} />
+ <PostFoodModal
+  isOpen={isPostOpen}
+  onClose={() => setIsPostOpen(false)}
+  onEventCreated={onEventCreated}/>
 
 </section>
     
