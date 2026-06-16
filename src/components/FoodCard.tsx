@@ -4,16 +4,18 @@
 
 import Image from "next/image"
 import { useEffect, useRef } from "react"
+import { Clock3, MapPin } from "lucide-react";
 
 type FoodCardProps = {
   event: string
   food: string
   location: string
+  date: string
   time: string
   onClick?: () => void
 }
 
-export default function FoodCard({ event, food, location, time, onClick }: FoodCardProps) {
+export default function FoodCard({ event, food, location, date, time, onClick }: FoodCardProps) {
 
   const cardRef = useRef<HTMLDivElement>(null)
   
@@ -70,13 +72,33 @@ export default function FoodCard({ event, food, location, time, onClick }: FoodC
   className="absolute left-1/2 top-0 z-20 -translate-x-1/2+6 -translate-y-5"
 />
 
-  <div className="absolute left-8 top-3 z-10">
-    <h3 className="text-2xl font-bold text-[#5f3d26] line-clamp-1">{event}</h3>
-     <p className="text-xl  text-[#5f3d26]">{food}</p>
-    <p className="text-base  text-[#5f3d26]">{location}</p>
-    <p className="text-base  text-[#FFA353]">{time}</p>
+  <div className="absolute left-8 top-3 z-10 w-[220px]">
+  <div className="flex items-start justify-between gap-3">
+    <div className="min-w-0">
+      <h3 className="line-clamp-1 text-2xl font-bold text-[#5f3d26]">
+        {event}
+      </h3>
+      <p className="line-clamp-1 text-xl text-[#5f3d26]">{food}</p>
+    </div>
+
+    <p className="shrink-0 rounded-full bg-[#fff7eb] px-2 py-1 text-xs font-bold  text-[#FFA353]">
+      {date}
+    </p>
   </div>
+
+  <div className="mt-2 space-y-1 text-[#5f3d26]">
+    <div className="flex items-center gap-1.5">
+      <MapPin size={15} className="shrink-0 text-[#FFA353]" />
+      <p className="line-clamp-1 text-base">{location}</p>
+    </div>
+
+    <div className="flex items-center gap-1.5 text-[#5f3d26]">
+      <Clock3 size={15} className="shrink-0 text-[#FFA353]" />
+      <p className="whitespace-pre-line text-base leading-tight">{time}</p>
+    </div>
   </div>
+</div>
+</div>
 </article>
   );
 }

@@ -10,10 +10,13 @@ type TodaysFoodSectionProps = {
   onSelectEvent: (eventId: number | null) => void;
   events: FoodEvent[];
   selectedEventId: number | null
-  
+  formatEventDate: (event: FoodEvent) => string;
+  formatEventTime: (event: FoodEvent) => string;
+
+
 };
 
-export default function TodaysFoodSection({onSelectEvent, events, selectedEventId}: TodaysFoodSectionProps) {
+export default function TodaysFoodSection({onSelectEvent, events, selectedEventId, formatEventDate, formatEventTime}: TodaysFoodSectionProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const SCROLL_AMOUNT = 312;
 
@@ -47,6 +50,8 @@ function scrollLeft() {
   }
 }
 
+
+
   return (
     <section id="todays-food" className="mx-auto max-w-6xl overflow-visible px-16 py-18 ">
     
@@ -77,7 +82,8 @@ function scrollLeft() {
           event={event.eventName || "Unnamed Event"}
           food = {event.food}
           location={buildings[event.building].shortName}
-          time={`${event.startTime} - ${event.endTime}`}
+          date= {formatEventDate(event)}
+          time= {formatEventTime(event)}
           onClick={() => {
             onSelectEvent(event.id)
 

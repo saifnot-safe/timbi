@@ -7,7 +7,7 @@ import PostFoodModal from "./PostFoodModal";
 import { SignInButton, useUser } from "@clerk/nextjs";
 
 type HeroSectionProps = {
-  onEventCreated: () => void;
+  onEventCreated: () => Promise<void>;
 }
 
 export default function HeroSection({ onEventCreated }: HeroSectionProps) {

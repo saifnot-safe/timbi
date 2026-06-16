@@ -2,6 +2,7 @@ import { useState } from "react";
 import { buildings } from "@/data/buildings";
 import { FoodEvent } from "@/types/FoodEvent";
 import { supabase } from "@/lib/supabase";
+import { categoryKeywords, FoodCategory } from "@/data/foodCategories";
 
 type Props = {
   isOpen: boolean;
@@ -50,8 +51,8 @@ export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props
     async function handleSubmit(e: React.FormEvent) {
       e.preventDefault();
 
-      const startIndex = times.indexOf(formData.startTime);
-      const endIndex = times.indexOf(formData.endTime);
+      const startIndex = times.findIndex((time) => time.value === formData.startTime);
+const endIndex = times.findIndex((time) => time.value === formData.endTime);
 
       if (
       formData.startDate === formData.endDate &&
@@ -89,7 +90,7 @@ export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props
     .insert({
       event_name: formData.eventName,
       food: formData.food,
-      category: "meal", // temporary until category detection
+      category: detectFoodCategory(formData.food),
       building: formData.building,
       start_date: formData.startDate,
       end_date: formData.endDate,
@@ -114,8 +115,8 @@ export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props
     }
 
     return (
-      <div className="fixed inset-0 z-9999 flex items-center justify-center overflow-y-auto bg-black/30 px-4 py-8">
-      <div className="timbi-scroll max-h-[70vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-[#fff7eb] p-8 shadow-2xl">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black/30 px-4 py-8">
+      <div className="timbi-scroll max-h-[70vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-[#fff7eb] p-8 text-left shadow-2xl">
         <div className="mb-6 flex items-start justify-between">
 
           <div>
@@ -214,11 +215,11 @@ export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props
         Start time
       </option>
 
-      {times.map((time) => (
-        <option key={time} value={time}>
-          {time}
-        </option>
-      ))}
+     {times.map((time) => (
+      <option key={time.value} value={time.value}>
+        {time.label}
+      </option>
+    ))}
     </select>
 
     <select
@@ -231,11 +232,11 @@ export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props
         End time
       </option>
 
-      {times.map((time) => (
-        <option key={time} value={time}>
-          {time}
-        </option>
-      ))}
+     {times.map((time) => (
+  <option key={time.value} value={time.value}>
+    {time.label}
+  </option>
+))}
        </select>
     </div>
     </div>
@@ -287,16 +288,38 @@ export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props
   }
   
 
-    function generateTimeSlots() {
-      const slots = [];
-      for (let hour = 0; hour < 24; hour++) {
-        for (let minute = 0; minute < 60; minute += 30) {
-          const period = hour < 12 ? "AM" : "PM";
-          const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-          const time = `${displayHour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')} ${period}`;
-          slots.push(time);
-        }
-      }
-      return slots;
+ function generateTimeSlots() {
+  const slots = [];
+
+  for (let hour = 0; hour < 24; hour++) {
+    for (let minute = 0; minute < 60; minute += 30) {
+      const period = hour < 12 ? "AM" : "PM";
+      const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+
+      const label = `${displayHour
+        .toString()
+        .padStart(2, "0")}:${minute.toString().padStart(2, "0")} ${period}`;
+
+      const value = `${hour.toString().padStart(2, "0")}:${minute
+        .toString()
+        .padStart(2, "0")}`;
+
+      slots.push({ label, value });
     }
+  }
+
+  return slots;
+}
+
+  function detectFoodCategory(food: string): FoodCategory {
+  const text = food.toLowerCase();
+
+  for (const [category, keywords] of Object.entries(categoryKeywords)) {
+    if (keywords.some((keyword) => text.includes(keyword))) {
+      return category as FoodCategory;
+    }
+  }
+
+  return "meal";
+}
   

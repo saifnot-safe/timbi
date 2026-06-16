@@ -8,12 +8,20 @@ import { buildings } from "@/data/buildings"
 import { categories } from "@/data/foodCategories"
 import { useEffect, useRef } from "react"
 import type { Marker as LeafletMarker, Map as LeafletMap } from "leaflet"
+import {
+  MapPin,
+  Clock3,
+  User,
+  ExternalLink,
+} from "lucide-react";
 
  type TimbiMapProps = {
   events: FoodEvent[];
   selectedEventId: number | null
   onSelectEvent: (eventId: number|null) => void
-
+   formatEventDate: (event: FoodEvent) => string;
+   formatEventTime: (event: FoodEvent) => string;
+  formatEventDateTimeCompact:  (event: FoodEvent) => string;
 }
 
 
@@ -22,8 +30,14 @@ import type { Marker as LeafletMarker, Map as LeafletMap } from "leaflet"
 });
  
 
-export default function TimbiMap({events,selectedEventId, onSelectEvent,}: TimbiMapProps) {
-
+export default function TimbiMap({
+  events,
+  selectedEventId,
+  onSelectEvent,
+  formatEventDate,
+  formatEventTime,
+  formatEventDateTimeCompact,
+}: TimbiMapProps) {
 
 
 const mapRef = useRef<LeafletMap | null>(null)
@@ -66,7 +80,7 @@ useEffect(() => {
         <MapContainer
         ref={mapRef}
         center={[43.0096, -81.2737]}
-        zoom={17}
+        zoom={18}
         scrollWheelZoom={false}
         zoomControl={false}
         attributionControl={false}
@@ -81,11 +95,25 @@ useEffect(() => {
   const building = buildings[event.building]
   const food = categories[event.category]
 
+  const sameBuildingEvents = events.filter(
+  (e) => e.building === event.building
+  );
+
+  const eventIndex = sameBuildingEvents.findIndex(
+    (e) => e.id === event.id
+  );
+
+const angle = (eventIndex / sameBuildingEvents.length) * 2 * Math.PI;
+const radius = 0.00010;
+
+const markerLat = building.lat + Math.cos(angle) * radius;
+const markerLng = building.lng + Math.sin(angle) * radius;
+
   const icon = L.icon({
     iconUrl: food.icon,
-    iconSize: [56, 56],
-    iconAnchor: [32, 32],
-    popupAnchor: [-5, -36],
+    iconSize: [40, 40],
+    iconAnchor: [20, 20],
+    popupAnchor: [1, -22],
     className: "timbi-map-sticker",
   })
 
@@ -95,7 +123,8 @@ useEffect(() => {
     markerRefs.current[event.id] = marker
   }}
   key={event.id}
-  position={[building.lat, building.lng]}
+  position={[markerLat, markerLng]}
+  zIndexOffset={selectedEventId === event.id ? 1000 : 0}
   icon={icon}
   eventHandlers={{
     click: () => {
@@ -119,7 +148,7 @@ useEffect(() => {
           </div>
 
           <div className="text-[#FFA353]">
-            {event.startTime} - {event.endTime}
+            {formatEventTime(event)}
           </div>
               </Popup>
             </Marker>
@@ -128,39 +157,58 @@ useEffect(() => {
         })}
       </MapContainer>
 
-    {selectedEvent && selectedBuilding &&  selectedFood && (
-    <div className={`absolute right-0 top-0 z-[400] h-full w-65 bg-white p-6 shadow-2xl ${nunito.className}`}>
+   {selectedEvent && selectedBuilding && selectedFood && (
+  <div
+    className={`absolute right-0 top-0 z-[400] h-full w-65 bg-white p-6 shadow-2xl ${nunito.className}`}
+  >
+    <h3 className="text-2xl font-bold text-[#5f3d26]">
+      {selectedEvent.eventName}
+    </h3>
 
-      <h3 className="text-2xl font-bold text-[#5f3d26]">
-        {selectedEvent.eventName}
-      </h3>
+    <p className="mt-3 text-sm text-[#8c6a52]">
+      {selectedFood.name}
+    </p>
 
-      <p className="mt-3 text-sm text-[#8c6a52]">
-        {selectedFood?.name}
-      </p>
+    <div className="mt-6 space-y-5 text-[#5f3d26]">
 
-      <div className="mt-6 space-y-3 text-[#5f3d26]">
+      <div className="flex items-center gap-2">
+        <MapPin size={18} className="text-[#FFA353]" />
         <p>{selectedBuilding.name}</p>
+      </div>
 
-        <p className="font-bold text-[#FFA353]">
-          {selectedEvent.startTime} - {selectedEvent.endTime}
-        </p>
+      <div className="flex gap-2 text-[#5f3d26]">
+        <Clock3
+          size={18}
+          className="mt-0.5 shrink-0 text-[#FFA353]"
+        />
+        <div className="whitespace-pre-line">
+          {formatEventDate(selectedEvent)}
+        </div>
+      </div>
 
+      <div className="flex items-center gap-2">
+        <User size={18} className="text-[#FFA353]" />
         <p>{selectedEvent.host}</p>
+      </div>
 
+      {selectedEvent.description && (
         <p className="leading-relaxed">
           {selectedEvent.description}
         </p>
+      )}
 
-        <a className="font-bold mt-6 text-[#FFA353]"
+      <a
         href={selectedEvent.sourceUrl}
         target="_blank"
         rel="noopener noreferrer"
+        className="mt-6 flex items-center gap-2 font-bold text-[#FFA353] hover:underline"
       >
+        <ExternalLink size={18} />
         View Source
       </a>
-      </div>
+
     </div>
+  </div>
 )}
     </div>
   )

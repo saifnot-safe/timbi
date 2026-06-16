@@ -25,4 +25,13 @@ export const categories = {
     }
 };
 
+export const categoryKeywords = {
+  pizza: ["pizza", "slice"],
+  coffee: ["coffee", "latte", "espresso"],
+  baked: ["cookie", "donut", "muffin", "croissant", "cake", "pastry", "brownie"],
+  drink: ["juice", "pop", "soda", "coke", "water", "boba", "bubble tea"],
+  snack: ["snack", "chips", "candy", "chocolate", "granola", "fruit", "nuts", "popcorn", "bar", "nachos"],
+  meal: ["sandwich", "wrap", "burger", "shawarma", "sushi", "pasta"],
+};
+
 export type FoodCategory = keyof typeof categories;
