@@ -51,10 +51,13 @@ async function loadEvents() {
   }
   const now = new Date();
 
-  const activeEvents = data.filter((event) => {
-    const eventEnd = new Date(`${event.end_date}T${event.end_time}`);
-    return eventEnd >= now;
-  });
+const today = new Date().toISOString().split("T")[0];
+
+const activeEvents = data.filter((event) => {
+  if (!event.end_date) return false;
+
+  return event.end_date >= today;
+});
 
   const formattedEvents: FoodEvent[] = activeEvents.map((event) => ({
     id: event.id,
@@ -71,7 +74,7 @@ async function loadEvents() {
     description: event.description,
     sourceUrl: event.source_url,
     reporter: event.reporter,
-    verified: event.verified,
+    isVerified: event.is_verified,
   }));
 
  setEvents(formattedEvents);
@@ -92,7 +95,9 @@ function formatTime(time: string) {
 }
 
 function formatDate(date: string) {
-  return new Date(date).toLocaleDateString("en-CA", {
+  const [year, month, day] = date.split("-").map(Number);
+
+  return new Date(year, month - 1, day).toLocaleDateString("en-CA", {
     month: "short",
     day: "numeric",
   });
@@ -110,8 +115,12 @@ function formatEventDate(event: FoodEvent) {
 }
 
 function formatEventTime(event: FoodEvent) {
-  const startTime = formatTime(event.startTime);
-  const endTime = formatTime(event.endTime);
+  const startTime = event.startTime ? formatTime(event.startTime) : "Time TBD";
+  const endTime = event.endTime ? formatTime(event.endTime) : null;
+
+  if (!endTime) {
+    return `${startTime}`;
+  }
 
   if (event.isContinuous && event.startDate !== event.endDate) {
     return `${startTime} → ${formatDate(event.endDate)} ${endTime}`;
@@ -123,8 +132,6 @@ function formatEventTime(event: FoodEvent) {
 function formatEventDateTimeCompact(event: FoodEvent) {
   const startDate = formatDate(event.startDate);
   const endDate = formatDate(event.endDate);
-  const startTime = formatTime(event.startTime);
-  const endTime = formatTime(event.endTime);
 
   if (event.startDate === event.endDate) {
     return `${startDate}`;
@@ -138,9 +145,9 @@ function formatEventDateTimeCompact(event: FoodEvent) {
   return (
         <main className="min-h-screen bg-[#ffebd0]">
 
-          {/*<p className="p-4 text-black">
+          {/* <p className="p-4 text-black">
             events loaded: {events.length}
-          </p>*/}
+          </p> */}
 
         <TimbiHeader />
 

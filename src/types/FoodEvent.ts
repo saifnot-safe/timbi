@@ -12,8 +12,9 @@ export type FoodEvent = {
   startTime: string;
   endTime: string;
   host: string;
+  isContinuous: false
   description?: string;
   sourceUrl: string;
   reporter?: string;
-  verified?: boolean;
+  isVerified?: boolean;
 };

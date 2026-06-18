@@ -60,11 +60,116 @@
 }
 
 
-.timbi-map-sticker {
-  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.14));
-  
+.timbi-marker {
+  position: relative;
+  width: 56px;
+  height: 56px;
 }
 
+.timbi-marker-food,
+.timbi-marker-buddy {
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 48px;
+  height: 48px;
+  object-fit: contain;
+}
+
+.timbi-marker-food {
+  z-index: 1;
+  opacity: 1;
+  transform: scale(1);
+}
+
+.timbi-marker-buddy {
+  opacity: 0;
+  transform: scale(0);
+}
+
+.timbi-marker-selected .timbi-marker-food {
+  animation: food-shrink-out 0.22s ease-in forwards;
+}
+
+.timbi-marker-selected .timbi-marker-buddy {
+  animation: timbi-pop-in 0.25s ease-out forwards;
+}
+
+.timbi-marker-deselecting .timbi-marker-buddy {
+  animation: timbi-shrink-out 0.25s ease-in forwards;
+}
+
+.timbi-marker-deselecting .timbi-marker-food {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.timbi-marker-deselecting .timbi-marker-buddy {
+  z-index: 3;
+}
+
+
+@keyframes timbi-pop-in {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  65% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+
+  82% {
+    transform: scale(0.92);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes timbi-shrink-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(0);
+  }
+}
+
+@keyframes food-shrink-out {
+  0% {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  100% {
+    opacity: 0;
+    transform: scale(0);
+  }
+}
+
+@keyframes food-grow-in {
+  0% {
+    opacity: 0;
+    transform: scale(0);
+  }
+
+  70% {
+    opacity: 1;
+    transform: scale(1.12);
+  }
+
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
 .timbi-popup .leaflet-popup-content {
   margin: 12px 12px;
@@ -83,6 +188,14 @@
   background: #ff9f05;
   border-radius: 999px;
 }
+
+.timbi-marker-wrap {
+  position: relative;
+  width: 56px;
+  height: 72px;
+}
+
+
 
 
 body {

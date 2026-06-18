@@ -99,7 +99,7 @@ const endIndex = times.findIndex((time) => time.value === formData.endTime);
       host: formData.host,
       description: formData.description,
       source_url: sourceUrl,
-      verified: false,
+      is_verified: false,
     })
     .select()
     .single();

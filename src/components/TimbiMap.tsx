@@ -6,7 +6,7 @@ import L from "leaflet"
 import type { FoodEvent } from "@/types/FoodEvent";
 import { buildings } from "@/data/buildings"
 import { categories } from "@/data/foodCategories"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
 import type { Marker as LeafletMarker, Map as LeafletMap } from "leaflet"
 import {
   MapPin,
@@ -27,7 +27,19 @@ import {
 
   const nunito = Nunito({
   subsets: ["latin"],
+  
 });
+
+
+function titleCase(text: string | null | undefined) {
+  if (!text) return "";
+
+  return text
+    .toLowerCase()
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
  
 
 export default function TimbiMap({
@@ -74,6 +86,9 @@ useEffect(() => {
   }
 }, [selectedEventId, selectedBuilding])
 
+const [animatingOutId, setAnimatingOutId] = useState<number | null>(null);
+
+
  return (
     
 <div className="relative mx-auto h-[500px] w-full max-w-3xl overflow-hidden rounded-3xl shadow-lg">
@@ -109,15 +124,32 @@ const radius = 0.00010;
 const markerLat = building.lat + Math.cos(angle) * radius;
 const markerLng = building.lng + Math.sin(angle) * radius;
 
-  const icon = L.icon({
-    iconUrl: food.icon,
-    iconSize: [40, 40],
-    iconAnchor: [20, 20],
-    popupAnchor: [1, -22],
-    className: "timbi-map-sticker",
-  })
+const isSelected = selectedEventId === event.id;
+
+const isDeselecting =
+  animatingOutId === event.id &&
+  selectedEventId !== event.id;
+
+const showTimbi = isSelected || isDeselecting;
+
+const icon = L.divIcon({
+  className: "",
+  iconSize: [56, 56],
+  iconAnchor: [28, 42],
+  html: `
+    <div class="timbi-marker ${
+      isSelected ? "timbi-marker-selected" : ""
+    } ${
+      isDeselecting ? "timbi-marker-deselecting" : ""
+    }">
+      <img src="${food.icon}" class="timbi-marker-food" />
+      <img src="/pins/timbi-anim.webp" class="timbi-marker-buddy" />
+    </div>
+  `,
+});
 
   return (
+
    <Marker
   ref={(marker) => {
     markerRefs.current[event.id] = marker
@@ -127,9 +159,19 @@ const markerLng = building.lng + Math.sin(angle) * radius;
   zIndexOffset={selectedEventId === event.id ? 1000 : 0}
   icon={icon}
   eventHandlers={{
-    click: () => {
-      onSelectEvent(selectedEventId === event.id ? null : event.id)
-    },
+  click: () => {
+  if (selectedEventId === event.id) {
+    setAnimatingOutId(event.id);
+
+    setTimeout(() => {
+      setAnimatingOutId(null);
+    }, 250);
+
+    onSelectEvent(null);
+  } else {
+    onSelectEvent(event.id);
+  }
+},
     popupclose: () => {
       if (selectedEventId === event.id) {
         onSelectEvent(null)
@@ -137,20 +179,6 @@ const markerLng = building.lng + Math.sin(angle) * radius;
     },
   }}
 >
-      <Popup className = {`timbi-popup ${nunito.className}`} closeButton={false}>
-
-          <div className="font-bold text-[#5f3d26]">
-            {event.food}
-          </div>
-
-          <div className="text-[#5f3d26]">
-            {building.shortName}
-          </div>
-
-          <div className="text-[#FFA353]">
-            {formatEventTime(event)}
-          </div>
-              </Popup>
             </Marker>
 
           )
@@ -162,11 +190,11 @@ const markerLng = building.lng + Math.sin(angle) * radius;
     className={`absolute right-0 top-0 z-[400] h-full w-65 bg-white p-6 shadow-2xl ${nunito.className}`}
   >
     <h3 className="text-2xl font-bold text-[#5f3d26]">
-      {selectedEvent.eventName}
+      {titleCase(selectedEvent.eventName)}
     </h3>
 
     <p className="mt-3 text-sm text-[#8c6a52]">
-      {selectedFood.name}
+     {titleCase(selectedEvent.food)}
     </p>
 
     <div className="mt-6 space-y-5 text-[#5f3d26]">
@@ -183,6 +211,9 @@ const markerLng = building.lng + Math.sin(angle) * radius;
         />
         <div className="whitespace-pre-line">
           {formatEventDate(selectedEvent)}
+            <p className="text-sm text-[#8c6a52]">
+              {formatEventTime(selectedEvent)}
+            </p>
         </div>
       </div>
 
