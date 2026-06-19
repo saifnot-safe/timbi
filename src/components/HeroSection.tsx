@@ -32,7 +32,7 @@ export default function HeroSection({ onEventCreated }: HeroSectionProps) {
 
   <div className="mt-8 flex gap-4">
   <button onClick={() => {
-     document.getElementById("todays-food")
+     document.getElementById("events")
       ?.scrollIntoView({ behavior: "smooth" })
   }} className="rounded-2xl bg-[#ff9d00] px-6 py-5 w-48 text-xl font-semibold text-white shadow-md transition hover:scale-105">
     Find Food

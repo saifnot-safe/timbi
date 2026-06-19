@@ -6,6 +6,7 @@ import L from "leaflet"
 import type { FoodEvent } from "@/types/FoodEvent";
 import { buildings } from "@/data/buildings"
 import { categories } from "@/data/foodCategories"
+import { titleCase } from "@/lib/titleCase";
 import { useEffect, useRef, useState } from "react"
 import type { Marker as LeafletMarker, Map as LeafletMap } from "leaflet"
 import {
@@ -29,17 +30,6 @@ import {
   subsets: ["latin"],
   
 });
-
-
-function titleCase(text: string | null | undefined) {
-  if (!text) return "";
-
-  return text
-    .toLowerCase()
-    .split(" ")
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(" ");
-}
  
 
 export default function TimbiMap({
