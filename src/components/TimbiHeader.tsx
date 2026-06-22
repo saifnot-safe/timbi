@@ -5,7 +5,7 @@ export default function TimbiHeader() {
   const { isSignedIn } = useAuth()
   return (
     
-  <header className="sticky top-0 h-16 shadow-smz-50  flex w-full items-center justify-between border-b-1 border-[#ffebd0] bg-[#ffebd0] px-4 py-1.5 backdrop-blur">
+  <header className="sticky top-0 h-16 z-9999 flex w-full items-center justify-between border-b-1 border-[#ffebd0] bg-[#ffebd0] px-4 py-1.5 backdrop-blur">
  <div className="flex items-center gap-4">
 
 <Show when="signed-out">

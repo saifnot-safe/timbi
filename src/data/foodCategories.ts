@@ -20,7 +20,7 @@ export const categories = {
         icon: "/pins/drink.png",
     },
     baked: {
-        name: "Baked Goods",
+        name: "Baked",
         icon: "/pins/baked.png",
     }
 };

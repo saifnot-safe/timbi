@@ -165,7 +165,7 @@ export default function Home() {
             </button>
           </div>
 
-          <div className="flex flex-col gap-8 lg:h-[600px] lg:flex-row">
+          <div className="flex flex-col gap-8 lg:h-[500px] lg:flex-row">
 
             <div
               className={`lg:block lg:h-full lg:w-[380px] lg:shrink-0 ${
@@ -187,6 +187,7 @@ export default function Home() {
                 mobileView === "map" ? "block" : "hidden"
               }`}
             >
+              
               <TimbiMap
                 events={filteredEvents}
                 selectedEventId={selectedEventId}

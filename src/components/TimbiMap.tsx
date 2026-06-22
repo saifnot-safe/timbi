@@ -85,6 +85,7 @@ const [animatingOutId, setAnimatingOutId] = useState<number | null>(null);
         <MapContainer
         ref={mapRef}
         center={[43.0096, -81.2737]}
+        selectedCenter={[43.0096/2, -81.2737]}
         zoom={18}
         scrollWheelZoom={false}
         zoomControl={false}

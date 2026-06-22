@@ -15,4 +15,10 @@ const eslintConfig = defineConfig([
   ]),
 ]);
 
+const nextConfig = {
+  experimental: {
+    allowedDevOrigins: ["10.0.0.108"],
+  },
+};
+
 export default eslintConfig;
