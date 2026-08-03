@@ -11,7 +11,6 @@ type EventsSectionProps = {
   selectedEventId: number | null;
   formatEventDate: (event: FoodEvent) => string;
   formatEventTime: (event: FoodEvent) => string;
-  dateFilter: "today" | "week" | "all";
 };
 
 
@@ -21,7 +20,6 @@ export default function EventsSection({
   selectedEventId,
   formatEventDate,
   formatEventTime,
-  dateFilter,
 }: EventsSectionProps) {
   return (
 <section className="flex min-h-0 flex-col">

@@ -1,8 +1,10 @@
 import dotenv from "dotenv";
 dotenv.config({ path: ".env.local" });
-import { chromium } from "playwright";
+import { chromium, type Page } from "playwright";
 import OpenAI from "openai";
 import { createClient } from "@supabase/supabase-js";
+import { getLocalDateKey } from "@/lib/dateUtils";
+import { buildings } from "@/data/buildings";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -25,27 +27,35 @@ const clubHandles = [
   "bsawestern",
   "westernboardgamesclub",
   "uwoteaclub",
-  "westernfoodies"
+  "westernfoodies",
 ];
 
 const foodKeywords = [
-
-  "food",
-  "pizza",
-  "snacks",
-  "coffee",
-  "donuts",
-  "refreshments",
-  "lunch",
-  "dinner",
-  "breakfast",
-  "cookies",
-  "boba",
-  "pancakes",
+  "food", "pizza", "snack", "coffee", "donut", "refreshment",
+  "lunch", "dinner", "breakfast", "cookie", "boba", "pancake",
+  "tea", "bagel", "dessert", "treat", "samosa", "candy",
+  "popcorn", "catered", "provided", "bbq",
 ];
 
-const TEST_MODE = true;
+const TEST_MODE = process.env.TEST_MODE === "true";
 const TEST_ANCHOR_DATE = new Date("2026-03-18");
+
+const VALID_BUILDING_IDS = Object.keys(buildings);
+
+type PostOutcome =
+  | "no_caption"
+  | "no_keyword"
+  | "parse_failed"
+  | "invalid_building"
+  | "rejected"
+  | "saved";
+
+// Outcomes that are final. Anything not listed here gets retried next run:
+// no_caption (page may not have loaded), parse_failed (AI hiccup),
+// invalid_building (may become valid when buildings.ts grows).
+const TERMINAL_OUTCOMES: PostOutcome[] = ["no_keyword", "rejected", "saved"];
+
+const AUTH_ERROR = "Instagram authentication required";
 
 function shiftDateForTestMode(dateText: string | null) {
   if (!TEST_MODE || !dateText) return dateText;
@@ -68,24 +78,35 @@ function shiftDateForTestMode(dateText: string | null) {
   if (Number.isNaN(parsedDate.getTime())) return dateText;
 
   const shiftedDate = new Date(parsedDate.getTime() + shiftMs);
-  return shiftedDate.toISOString().split("T")[0];
+  return getLocalDateKey(shiftedDate);
 }
 
 function cleanDateText(dateText: string) {
   return dateText
     .replace(/\b(\d+)(st|nd|rd|th)\b/gi, "$1")
-    .replace(/Monday,|Tuesday,|Wednesday,|Thursday,|Friday,|Saturday,|Sunday,/gi, "")
+    .replace(
+      /Monday,|Tuesday,|Wednesday,|Thursday,|Friday,|Saturday,|Sunday,/gi,
+      ""
+    )
     .trim();
 }
 
-function addHours(time: string, hours: number) {
-  const [h, m] = time.split(":").map(Number);
+// Instagram does not redirect logged-out profile views to /accounts/login
+// (it shows a modal instead), so that check is mostly inert. /challenge is
+// the one that does redirect, and it means the account is blocked.
+function assertInstagramSession(page: Page) {
+  const currentUrl = page.url();
 
-  const date = new Date();
-  date.setHours(h, m, 0, 0);
-  date.setHours(date.getHours() + hours);
+  if (
+    currentUrl.includes("/challenge") ||
+    currentUrl.includes("/accounts/login")
+  ) {
+    throw new Error(`${AUTH_ERROR}: ${currentUrl}`);
+  }
+}
 
-  return date.toTimeString().slice(0, 5);
+function isAuthError(err: unknown) {
+  return err instanceof Error && err.message.includes(AUTH_ERROR);
 }
 
 function extractCaption(bodyText: string, handle: string) {
@@ -97,10 +118,8 @@ function extractCaption(bodyText: string, handle: string) {
   const handleIndex = lines.findIndex((line, index) => {
     return (
       line === handle &&
-      (
-        lines[index + 1]?.match(/^\d+[smhdw]$/) ||
-        lines[index + 2]?.match(/^\d+[smhdw]$/)
-      )
+      (lines[index + 1]?.match(/^\d+[smhdw]$/) ||
+        lines[index + 2]?.match(/^\d+[smhdw]$/))
     );
   });
 
@@ -115,17 +134,17 @@ function extractCaption(bodyText: string, handle: string) {
   for (let i = startIndex; i < lines.length; i++) {
     const line = lines[i];
 
-   if (
-  lines[i + 1]?.match(/^\d+[smhdw]$/) ||
-  line.match(/^\d+[smhdw]$/) ||
-  line === "Reply" ||
-  line.includes("likes") ||
-  line.includes("Liked by") ||
-  line.includes("More posts from") ||
-  line === "Meta"
-) {
-  break;
-}
+    if (
+      lines[i + 1]?.match(/^\d+[smhdw]$/) ||
+      line.match(/^\d+[smhdw]$/) ||
+      line === "Reply" ||
+      line.includes("likes") ||
+      line.includes("Liked by") ||
+      line.includes("More posts from") ||
+      line === "Meta"
+    ) {
+      break;
+    }
 
     captionLines.push(line);
   }
@@ -133,11 +152,7 @@ function extractCaption(bodyText: string, handle: string) {
   return captionLines.join("\n");
 }
 
-async function analyzePost(
-  caption: string,
-  imageUrls: string[],
-  sourceUrl: string
-) {
+async function analyzePost(caption: string, sourceUrl: string) {
   const response = await openai.responses.create({
     model: "gpt-5-mini",
     input: `
@@ -278,51 +293,51 @@ Description rules:
 - Do not invent details.
 - Do not use emojis.
 - Max 120 characters.
-`
+`,
   });
 
   return response.output_text;
 }
 
-function shouldUseVision(caption: string, imageUrls: string[]) {
-  const text = caption.toLowerCase();
-
-  const eventWords = [
-    "join us",
-    "event",
-    "night",
-    "social",
-    "mixer",
-    "workshop",
-    "meeting",
-    "gbm",
-    "info session",
-    "agm"
-  ];
-
-  const foodWords = [
-    "food",
-    "pizza",
-    "snacks",
-    "coffee",
-    "donuts",
-    "refreshments",
-    "lunch",
-    "dinner",
-    "breakfast",
-    "cookies",
-  ];
-
-  if (imageUrls.length === 0) return false;
-  if (!caption) return true;
-
-  return (
-    eventWords.some((word) => text.includes(word)) ||
-    foodWords.some((word) => text.includes(word))
+async function recordPost(
+  sourceUrl: string,
+  handle: string,
+  outcome: PostOutcome
+) {
+  const { error } = await supabase.from("scraped_posts").upsert(
+    {
+      source_url: sourceUrl,
+      handle,
+      outcome,
+      scraped_at: new Date().toISOString(),
+    },
+    { onConflict: "source_url" }
   );
+
+  if (error) {
+    console.log("Could not record post:", error.message);
+  }
 }
 
-async function saveEventToSupabase(parsedResult: any, sourceUrl: string, clubHandle: string) {
+async function getScrapedUrls(): Promise<Set<string>> {
+  const { data, error } = await supabase
+    .from("scraped_posts")
+    .select("source_url")
+    .in("outcome", TERMINAL_OUTCOMES);
+
+  if (error || !data) {
+    console.log("Could not fetch scraped URLs:", error?.message);
+    return new Set();
+  }
+
+  return new Set(data.map((row) => row.source_url));
+}
+
+async function saveEventToSupabase(
+  parsedResult: any,
+  sourceUrl: string,
+  clubHandle: string
+): Promise<"saved" | "duplicate" | "error"> {
   const eventToInsert = {
     event_name: parsedResult.eventName,
     food: parsedResult.food,
@@ -349,121 +364,213 @@ async function saveEventToSupabase(parsedResult: any, sourceUrl: string, clubHan
 
   if (error) {
     console.log("Supabase save error:", error.message);
-    return;
+    return "error";
   }
 
   if (!data || data.length === 0) {
     console.log("Duplicate skipped:", sourceUrl);
-    return;
+    return "duplicate";
   }
 
   console.log("Saved to Supabase:", data[0]);
+  return "saved";
 }
 
 async function main() {
   const browser = await chromium.launch({ headless: false });
 
-  const context = await browser.newContext({
-    storageState: "instagram-session.json",
-  });
+  let postsVisited = 0;
+  let captionsExtracted = 0;
+  let aiCalls = 0;
+  let eventsSaved = 0;
+  let errors = 0;
 
-  const page = await context.newPage();
+  try {
+    const scrapedUrls = await getScrapedUrls();
+    console.log(`Already scraped: ${scrapedUrls.size} posts`);
 
-  for (const handle of clubHandles) {
-    console.log(`\nScraping @${handle}`);
-
-    await page.goto(`https://www.instagram.com/${handle}/`, {
-      waitUntil: "networkidle",
+    const context = await browser.newContext({
+      storageState: "instagram-session.json",
     });
 
-    await page.waitForTimeout(5000);
+    const page = await context.newPage();
 
-    const postLinks = await page
-      .locator('a[href*="/p/"], a[href*="/reel/"]')
-      .evaluateAll((els) =>
-        els.slice(0, 6).map((a) => (a as HTMLAnchorElement).href)
-      );
-
-    console.log(`Found ${postLinks.length} posts`);
-
-    for (const link of postLinks) {
-      await page.goto(link, { waitUntil: "networkidle" });
-      await page.waitForTimeout(4000);
-
-      const bodyText = await page.locator("body").innerText().catch(() => "");
-
-      const caption = extractCaption(bodyText, handle);
-
-      const imageUrls = await page
-        .locator("img")
-        .evaluateAll((imgs) =>
-          imgs
-            .map((img) => (img as HTMLImageElement).src)
-            .filter((src) =>
-                    src.includes("cdninstagram") &&
-                    !src.includes("s150x150") &&
-                    !src.includes("t51.89012-19") &&
-                    !src.includes("t51.2885-19")
-                  )
-        )
-        .catch(() => []);
-
-        if (!caption) {
-        console.log("Skipping: no caption");
-        continue;
-      }
-
-    const matchedKeyword = foodKeywords.find((word) =>
-   new RegExp(`\\b${word}\\b`, "i").test(caption)
-);
-
-if (!matchedKeyword) {
-  console.log("Skipping AI: no food keywords");
-  continue;
-}
-
-console.log("Matched food keyword:", matchedKeyword);
-
-      console.log("\n======================");
-      console.log("POST:", link);
-      console.log("CAPTION:", caption || "[no caption found]");
-      console.log("IMAGES:", imageUrls.slice(0, 3));
-
-       const aiResult = await analyzePost(
-        caption,
-        imageUrls,
-        link
-      );
-
-      console.log("AI RESULT:");
-      console.log(aiResult);
-     let parsedResult;
+    for (const handle of clubHandles) {
+      let handlePosts = 0;
+      let handleCaptions = 0;
 
       try {
-        parsedResult = JSON.parse(aiResult);
-      } catch {
-        console.log("Could not parse AI result as JSON");
-        continue;
-      }
+        console.log(`\nScraping @${handle}`);
 
-      if (TEST_MODE) {
-        parsedResult.startDate = shiftDateForTestMode(parsedResult.startDate);
-        parsedResult.endDate = shiftDateForTestMode(parsedResult.endDate);
-      }
-      if (
-          parsedResult.isFoodEvent &&
-          parsedResult.isFree !== false &&
-          parsedResult.confidence >= 90
-        ) {
-          
-          await saveEventToSupabase(parsedResult, link, handle);
+        await page.goto(`https://www.instagram.com/${handle}/`, {
+          waitUntil: "domcontentloaded",
+        });
+        assertInstagramSession(page);
+
+        await page.waitForTimeout(5000);
+
+        const allLinks = await page
+          .locator('a[href*="/p/"], a[href*="/reel/"]')
+          .evaluateAll((els) =>
+            els.slice(0, 6).map((a) => (a as HTMLAnchorElement).href)
+          );
+
+        const postLinks = allLinks.filter((l) => !scrapedUrls.has(l));
+
+        console.log(`Found ${allLinks.length} posts, ${postLinks.length} new`);
+
+        for (const link of postLinks) {
+          try {
+            await page.goto(link, { waitUntil: "domcontentloaded" });
+            assertInstagramSession(page);
+            await page.waitForTimeout(4000);
+            handlePosts++;
+
+            const bodyText = await page
+              .locator("body")
+              .innerText()
+              .catch(() => "");
+
+            const caption = extractCaption(bodyText, handle);
+
+            const imageUrls = await page
+              .locator("img")
+              .evaluateAll((imgs) =>
+                imgs
+                  .map((img) => (img as HTMLImageElement).src)
+                  .filter(
+                    (src) =>
+                      src.includes("cdninstagram") &&
+                      !src.includes("s150x150") &&
+                      !src.includes("t51.89012-19") &&
+                      !src.includes("t51.2885-19")
+                  )
+              )
+              .catch(() => []);
+
+            if (!caption) {
+              console.log("Skipping: no caption");
+              await recordPost(link, handle, "no_caption");
+              continue;
+            }
+            handleCaptions++;
+
+        const matchedKeyword = foodKeywords.find((word) =>
+        new RegExp(`\\b${word}s?\\b`, "i").test(caption)
+      );
+
+            if (!matchedKeyword) {
+              console.log("Skipping AI: no food keywords");
+              await recordPost(link, handle, "no_keyword");
+              continue;
+            }
+
+            console.log("Matched food keyword:", matchedKeyword);
+
+            console.log("\n======================");
+            console.log("POST:", link);
+            console.log("CAPTION:", caption);
+            console.log("IMAGES:", imageUrls.slice(0, 3));
+
+            aiCalls++;
+            const aiResult = await analyzePost(caption, link);
+
+            console.log("AI RESULT:");
+            console.log(aiResult);
+
+            let parsedResult;
+
+            try {
+              parsedResult = JSON.parse(aiResult);
+            } catch {
+              console.log("Could not parse AI result as JSON");
+              await recordPost(link, handle, "parse_failed");
+              continue;
+            }
+
+            if (TEST_MODE) {
+              parsedResult.startDate = shiftDateForTestMode(
+                parsedResult.startDate
+              );
+              parsedResult.endDate = shiftDateForTestMode(parsedResult.endDate);
+            }
+
+            if (!VALID_BUILDING_IDS.includes(parsedResult.building)) {
+              console.log("Skipping: invalid building", parsedResult.building);
+              await recordPost(link, handle, "invalid_building");
+              continue;
+            }
+
+            const passesCriteria =
+              parsedResult.isFoodEvent &&
+              parsedResult.isFree !== false &&
+              parsedResult.confidence >= 90;
+
+            if (!passesCriteria) {
+              console.log("Skipping: failed save criteria");
+              await recordPost(link, handle, "rejected");
+              continue;
+            }
+
+            const saveResult = await saveEventToSupabase(
+              parsedResult,
+              link,
+              handle
+            );
+
+            if (saveResult === "saved") {
+              await recordPost(link, handle, "saved");
+              eventsSaved++;
+            } else if (saveResult === "duplicate") {
+              await recordPost(link, handle, "saved");
+            } else {
+              // Deliberately record nothing: the DB write failed, so this post
+              // stays out of scraped_posts and gets retried next run.
+              errors++;
+              console.log("Save failed, will retry next run:", link);
+            }
+          } catch (err) {
+            if (isAuthError(err)) throw err;
+            errors++;
+            console.log(
+              "Post failed:",
+              link,
+              err instanceof Error ? err.message : err
+            );
+            continue;
+          }
         }
 
-
+        console.log(`@${handle}: ${handleCaptions}/${handlePosts} captions`);
+      } catch (err) {
+        if (isAuthError(err)) throw err;
+        errors++;
+        console.log("Handle failed:", handle, err);
+        continue;
+      } finally {
+        postsVisited += handlePosts;
+        captionsExtracted += handleCaptions;
+      }
     }
-  }
 
-  await browser.close();
+    console.log(`\n=== RUN SUMMARY ===`);
+    console.log(`Posts visited:      ${postsVisited}`);
+    console.log(`Captions extracted: ${captionsExtracted}`);
+    console.log(`AI calls:           ${aiCalls}`);
+    console.log(`Events saved:       ${eventsSaved}`);
+    console.log(`Errors:             ${errors}`);
+
+    if (postsVisited >= 10 && captionsExtracted === 0) {
+      throw new Error(
+        "session expired: zero captions extracted across entire run"
+      );
+    }
+  } finally {
+    await browser.close();
+  }
 }
 
-main();
+main().catch((error) => {
+  console.error("Scraper failed:", error);
+  process.exitCode = 1;
+});

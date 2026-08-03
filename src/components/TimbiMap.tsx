@@ -32,6 +32,7 @@ import {
 });
  
 
+
 export default function TimbiMap({
   events,
   selectedEventId,
@@ -45,6 +46,28 @@ export default function TimbiMap({
 const mapRef = useRef<LeafletMap | null>(null)
 const markerRefs = useRef<Record<number, LeafletMarker | null>>({})
 
+function getPanelAdjustedCenter(lat: number, lng: number) {
+  const map = mapRef.current;
+  if (!map) return L.latLng(lat, lng);
+
+  const isMobile = window.innerWidth < 1024; 
+  const zoom = 18;
+  const point = map.project(L.latLng(lat, lng), zoom);
+
+  if (isMobile) {
+    point.y += 60;
+  } else {
+    point.x += 130; 
+  }
+
+  const adjusted = map.unproject(point, zoom);
+
+  if (!Number.isFinite(adjusted.lat) || !Number.isFinite(adjusted.lng)) {
+    return L.latLng(lat, lng);
+  }
+
+  return adjusted;
+}
 
 
 const selectedEvent = events.find(
@@ -58,23 +81,38 @@ const selectedFood = selectedEvent
 const selectedBuilding = selectedEvent ? buildings[selectedEvent.building] : null
 
 useEffect(() => {
-  if (selectedEventId === null || !selectedBuilding) return
+  if (selectedEventId === null || !selectedBuilding) return;
 
-  const currentCenter = mapRef.current?.getCenter()
-  const target = L.latLng(selectedBuilding.lat, selectedBuilding.lng)
+  const lat = Number(selectedBuilding.lat);
+  const lng = Number(selectedBuilding.lng);
 
-  if (currentCenter && currentCenter.distanceTo(target) >= 5) {
-    mapRef.current?.flyTo([selectedBuilding.lat, selectedBuilding.lng], 18, {
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+    console.log("Bad building coords:", selectedBuilding);
+    return;
+  }
+
+  const map = mapRef.current;
+  const marker = markerRefs.current[selectedEventId];
+
+  if (!map || !marker) return;
+
+  map.invalidateSize();
+
+  const target = L.latLng(lat, lng);
+  const adjustedCenter = getPanelAdjustedCenter(lat, lng);
+
+  if (map.getCenter().distanceTo(adjustedCenter) >= 5) {
+    map.flyTo(adjustedCenter, 18, {
       duration: 0.8,
-    })
+    });
 
     setTimeout(() => {
-      markerRefs.current[selectedEventId]?.openPopup()
-    }, 650)
+      markerRefs.current[selectedEventId]?.openPopup();
+    }, 650);
   } else {
-    markerRefs.current[selectedEventId]?.openPopup()
+    marker.openPopup();
   }
-}, [selectedEventId, selectedBuilding])
+}, [selectedEventId, selectedBuilding]);
 
 const [animatingOutId, setAnimatingOutId] = useState<number | null>(null);
 
@@ -85,7 +123,7 @@ const [animatingOutId, setAnimatingOutId] = useState<number | null>(null);
         <MapContainer
         ref={mapRef}
         center={[43.0096, -81.2737]}
-        selectedCenter={[43.0096/2, -81.2737]}
+  
         zoom={18}
         scrollWheelZoom={false}
         zoomControl={false}
@@ -178,14 +216,16 @@ const icon = L.divIcon({
 
    {selectedEvent && selectedBuilding && selectedFood && (
   <div
-    className={`absolute right-0 top-0 z-[400] h-full w-65 bg-white p-6 shadow-2xl ${nunito.className}`}
+    className={`absolute z-[400] bg-white shadow-2xl ${nunito.className}
+      inset-x-0 bottom-0 max-h-[40%] w-full overflow-y-auto rounded-t-3xl p-6
+      lg:inset-x-auto lg:bottom-auto lg:right-0 lg:top-0 lg:h-full lg:max-h-none lg:w-65 lg:rounded-none`}
   >
     <h3 className="text-2xl font-bold text-[#5f3d26]">
       {titleCase(selectedEvent.eventName)}
     </h3>
 
     <p className="mt-3 text-sm text-[#8c6a52]">
-     {titleCase(selectedEvent.food)}
+      {titleCase(selectedEvent.food)}
     </p>
 
     <div className="mt-6 space-y-5 text-[#5f3d26]">
@@ -196,15 +236,12 @@ const icon = L.divIcon({
       </div>
 
       <div className="flex gap-2 text-[#5f3d26]">
-        <Clock3
-          size={18}
-          className="mt-0.5 shrink-0 text-[#FFA353]"
-        />
+        <Clock3 size={18} className="mt-0.5 shrink-0 text-[#FFA353]" />
         <div className="whitespace-pre-line">
           {formatEventDate(selectedEvent)}
-            <p className="text-sm text-[#8c6a52]">
-              {formatEventTime(selectedEvent)}
-            </p>
+          <p className="text-sm text-[#8c6a52]">
+            {formatEventTime(selectedEvent)}
+          </p>
         </div>
       </div>
 
@@ -214,9 +251,7 @@ const icon = L.divIcon({
       </div>
 
       {selectedEvent.description && (
-        <p className="leading-relaxed">
-          {selectedEvent.description}
-        </p>
+        <p className="leading-relaxed">{selectedEvent.description}</p>
       )}
 
       <a

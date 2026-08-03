@@ -4,16 +4,18 @@ import TimbiHeader from "@/components/TimbiHeader";
 import HeroSection from "@/components/HeroSection";
 import type { FoodEvent } from "@/types/FoodEvent";
 import dynamic from "next/dynamic"
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
-import EmptyState from "@/components/EmptyState";
 import FilterBar from "@/components/FilterBar";
 import EventsSection from "@/components/EventsSection";
 import { matchesDateFilter } from "@/lib/eventFilters";
+import { getLocalDateKey } from "@/lib/dateUtils";
 
 const TimbiMap = dynamic(() => import("@/components/TimbiMap"), {
   ssr: false,
 })
+
+
 
 export default function Home() {
 
@@ -25,6 +27,7 @@ export default function Home() {
   useEffect(() => {
     loadEvents();
   }, []);
+  
 
   const [dateFilter, setDateFilter] = useState<"today" | "week" | "all">("today");
   const [categoryFilter, setCategoryFilter] = useState<string[]>([]);
@@ -39,6 +42,12 @@ export default function Home() {
     });
   }, [events, dateFilter, categoryFilter, buildingFilter]);
 
+  useEffect(() => {
+  if (selectedEventId !== null && !filteredEvents.some((e) => e.id === selectedEventId)) {
+    setSelectedEventId(null);
+  }
+}, [filteredEvents, selectedEventId]);
+
   async function loadEvents() {
     setIsLoadingEvents(true);
 
@@ -52,7 +61,8 @@ export default function Home() {
       return;
     }
 
-    const today = new Date().toISOString().split("T")[0];
+
+  const today = getLocalDateKey();
 
     const activeEvents = data.filter((event) => {
       if (!event.end_date) return false;
@@ -113,15 +123,32 @@ export default function Home() {
     return `${startTime} - ${endTime}`;
   }
 
-  function formatEventDateTimeCompact(event: FoodEvent) {
-    const startDate = formatDate(event.startDate);
-    const endDate = formatDate(event.endDate);
-    if (event.startDate === event.endDate) return `${startDate}`;
-    return `${startDate} - ${endDate}`;
+
+   function handleSelectEvent(eventId: number | null) {
+    setSelectedEventId(eventId);
+
+    if (eventId !== null) {
+      setMobileView("map");
+    }
   }
 
+  const mapSectionRef = useRef<HTMLDivElement>(null);
+
+function handleMobileViewChange(view: "list" | "map") {
+  setMobileView(view);
+
+  if (view === "map") {
+    setTimeout(() => {
+      mapSectionRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+  }
+}
+
   return (
-    <main className="min-h-screen bg-[#ffebd0]">
+   <main className="min-h-screen overflow-x-hidden bg-[#ffebd0]">
 
       <TimbiHeader />
 
@@ -136,34 +163,33 @@ export default function Home() {
         onBuildingFilterChange={setBuildingFilter}
       />
 
-      {isLoadingEvents ? null : events.length === 0 ? (
-        <EmptyState onEventCreated={loadEvents} />
-      ) : (
         <section id="events" className="scroll-mt-34 mx-auto max-w-6xl px-8 pb-30">
 
           {/* mobile-only list/map toggle */}
-          <div className="mb-4 flex gap-2 lg:hidden">
-            <button
-              onClick={() => setMobileView("list")}
-              className={`flex-1 rounded-full py-2 text-sm font-bold transition ${
-                mobileView === "list"
-                  ? "bg-[#FFA353] text-white"
-                  : "border-2 border-[#FFA353] text-[#FFA353]"
-              }`}
-            >
-              List
-            </button>
-            <button
-              onClick={() => setMobileView("map")}
-              className={`flex-1 rounded-full py-2 text-sm font-bold transition ${
-                mobileView === "map"
-                  ? "bg-[#FFA353] text-white"
-                  : "border-2 border-[#FFA353] text-[#FFA353]"
-              }`}
-            >
-              Map
-            </button>
-          </div>
+          <div className="relative flex w-full rounded-full bg-[#FFE3BE] p-1 lg:hidden">
+  <div
+    className={`absolute inset-y-1 w-1/2 rounded-full bg-[#FFA353] shadow-sm transition-transform duration-200 ${
+      mobileView === "map" ? "translate-x-full" : "translate-x-0"
+    }`}
+  />
+  <button
+  
+    onClick={() =>  handleMobileViewChange("list")}
+    className={`relative z-10 flex-1 rounded-full py-2 text-sm font-bold transition ${
+      mobileView === "list" ? "text-white" : "text-[#6b422b]"
+    }`}
+  >
+    List
+  </button>
+  <button
+    onClick={() => handleMobileViewChange("map")}
+    className={`relative z-10 flex-1 rounded-full py-2 text-sm font-bold transition ${
+      mobileView === "map" ? "text-white" : "text-[#6b422b]"
+    }`}
+  >
+    Map
+  </button>
+</div>
 
           <div className="flex flex-col gap-8 lg:h-[500px] lg:flex-row">
 
@@ -175,32 +201,33 @@ export default function Home() {
               <EventsSection
                 selectedEventId={selectedEventId}
                 events={filteredEvents}
-                onSelectEvent={setSelectedEventId}
+                onSelectEvent={handleSelectEvent}
                 formatEventDate={formatEventDate}
                 formatEventTime={formatEventTime}
-                dateFilter={dateFilter}
               />
             </div>
 
             <div
+              ref={mapSectionRef}
               className={`lg:block lg:h-full lg:flex-1 ${
                 mobileView === "map" ? "block" : "hidden"
               }`}
             >
               
               <TimbiMap
+              
                 events={filteredEvents}
                 selectedEventId={selectedEventId}
                 onSelectEvent={setSelectedEventId}
                 formatEventDate={formatEventDate}
                 formatEventTime={formatEventTime}
-                formatEventDateTimeCompact={formatEventDateTimeCompact}
+                formatEventDateTimeCompact={formatEventDate}
               />
             </div>
 
           </div>
         </section>
-      )}
+     
 
     </main>
   );

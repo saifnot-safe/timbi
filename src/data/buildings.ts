@@ -189,6 +189,19 @@ vac: {
   lat: 43.0071,
   lng: -81.2795,
 },
+
+kresge: {
+  name: "Kresge Building",
+  shortName: "Kresge",
+  aliases: [
+    "kresge",
+    "kresge building",
+    "kresge room",
+    "kresge auditorium"
+  ],
+  lat: 43.0094,
+  lng: -81.2738,
+},
   
 }
 

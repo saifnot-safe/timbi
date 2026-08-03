@@ -1,17 +1,11 @@
 import type { FoodEvent } from "@/types/FoodEvent";
+import { getLocalDateKey } from "./dateUtils";
 
 export type DateFilter = "today" | "week" | "all";
 
-function getLocalDateString(date: Date) {
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, "0");
-  const day = String(date.getDate()).padStart(2, "0");
-
-  return `${year}-${month}-${day}`;
-}
 
 export function matchesDateFilter(event: FoodEvent, dateFilter: DateFilter) {
-  const today = getLocalDateString(new Date());
+  const today = getLocalDateKey();
 
   if (dateFilter === "all") {
     return event.endDate >= today;
@@ -24,7 +18,7 @@ export function matchesDateFilter(event: FoodEvent, dateFilter: DateFilter) {
   const weekFromNowDate = new Date();
   weekFromNowDate.setDate(weekFromNowDate.getDate() + 7);
 
-  const weekFromNow = getLocalDateString(weekFromNowDate);
+  const weekFromNow = getLocalDateKey(weekFromNowDate);
 
   return event.startDate <= weekFromNow && event.endDate >= today;
 }
