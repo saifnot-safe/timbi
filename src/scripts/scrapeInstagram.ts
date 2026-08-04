@@ -12,8 +12,9 @@ const openai = new OpenAI({
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  process.env.SUPABASE_SERVICE_ROLE_KEY!
 );
+
 
 const clubHandles = [
   "westernusc_events",
@@ -298,39 +299,104 @@ Description rules:
 
   return response.output_text;
 }
+const MAX_RETRIES = 3;
 
 async function recordPost(
   sourceUrl: string,
   handle: string,
   outcome: PostOutcome
 ) {
+  const isRetryable = !TERMINAL_OUTCOMES.includes(outcome);
+
+  let retryCount = 0;
+
+  if (isRetryable) {
+    const { data } = await supabase
+      .from("scraped_posts")
+      .select("retry_count")
+      .eq("source_url", sourceUrl)
+      .maybeSingle();
+
+    retryCount = (data?.retry_count ?? 0) + 1;
+  }
+
   const { error } = await supabase.from("scraped_posts").upsert(
     {
       source_url: sourceUrl,
       handle,
       outcome,
+      retry_count: retryCount,
       scraped_at: new Date().toISOString(),
     },
     { onConflict: "source_url" }
   );
 
-  if (error) {
-    console.log("Could not record post:", error.message);
-  }
+  if (error) console.log("Could not record post:", error.message);
 }
 
 async function getScrapedUrls(): Promise<Set<string>> {
   const { data, error } = await supabase
     .from("scraped_posts")
-    .select("source_url")
-    .in("outcome", TERMINAL_OUTCOMES);
+    .select("source_url, outcome, retry_count");
 
   if (error || !data) {
     console.log("Could not fetch scraped URLs:", error?.message);
     return new Set();
   }
 
-  return new Set(data.map((row) => row.source_url));
+  const skip = data.filter(
+    (row) =>
+      TERMINAL_OUTCOMES.includes(row.outcome) || row.retry_count >= MAX_RETRIES
+  );
+
+  return new Set(skip.map((row) => row.source_url));
+}
+
+type RunCounters = {
+  postsVisited: number;
+  captionsExtracted: number;
+  aiCalls: number;
+  eventsSaved: number;
+  errors: number;
+};
+
+async function startRun(): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("scrape_runs")
+    .insert({ status: "running" })
+    .select("id")
+    .single();
+
+  if (error || !data) {
+    console.log("Could not start run record:", error?.message);
+    return null;
+  }
+  return data.id;
+}
+
+async function finishRun(
+  runId: string | null,
+  status: "success" | "partial" | "failed_auth" | "failed",
+  counters: RunCounters,
+  errorSummary?: string
+) {
+  if (!runId) return;
+
+  const { error } = await supabase
+    .from("scrape_runs")
+    .update({
+      status,
+      finished_at: new Date().toISOString(),
+      posts_visited: counters.postsVisited,
+      captions_extracted: counters.captionsExtracted,
+      ai_calls: counters.aiCalls,
+      events_saved: counters.eventsSaved,
+      errors: counters.errors,
+      error_summary: errorSummary ?? null,
+    })
+    .eq("id", runId);
+
+  if (error) console.log("Could not finish run record:", error.message);
 }
 
 async function saveEventToSupabase(
@@ -376,14 +442,20 @@ async function saveEventToSupabase(
   return "saved";
 }
 
+
 async function main() {
   const browser = await chromium.launch({ headless: false });
+  const runId = await startRun();
 
-  let postsVisited = 0;
-  let captionsExtracted = 0;
-  let aiCalls = 0;
-  let eventsSaved = 0;
-  let errors = 0;
+  const counters: RunCounters = {
+    postsVisited: 0,
+    captionsExtracted: 0,
+    aiCalls: 0,
+    eventsSaved: 0,
+    errors: 0,
+  };
+
+  let fatalError: unknown = null;
 
   try {
     const scrapedUrls = await getScrapedUrls();
@@ -455,9 +527,9 @@ async function main() {
             }
             handleCaptions++;
 
-        const matchedKeyword = foodKeywords.find((word) =>
-        new RegExp(`\\b${word}s?\\b`, "i").test(caption)
-      );
+            const matchedKeyword = foodKeywords.find((word) =>
+              new RegExp(`\\b${word}s?\\b`, "i").test(caption)
+            );
 
             if (!matchedKeyword) {
               console.log("Skipping AI: no food keywords");
@@ -472,7 +544,7 @@ async function main() {
             console.log("CAPTION:", caption);
             console.log("IMAGES:", imageUrls.slice(0, 3));
 
-            aiCalls++;
+            counters.aiCalls++;
             const aiResult = await analyzePost(caption, link);
 
             console.log("AI RESULT:");
@@ -495,12 +567,9 @@ async function main() {
               parsedResult.endDate = shiftDateForTestMode(parsedResult.endDate);
             }
 
-            if (!VALID_BUILDING_IDS.includes(parsedResult.building)) {
-              console.log("Skipping: invalid building", parsedResult.building);
-              await recordPost(link, handle, "invalid_building");
-              continue;
-            }
-
+            // Criteria check runs BEFORE the building check so that non-events
+            // and paid events get the terminal "rejected" outcome instead of
+            // the retryable "invalid_building" one.
             const passesCriteria =
               parsedResult.isFoodEvent &&
               parsedResult.isFree !== false &&
@@ -512,6 +581,12 @@ async function main() {
               continue;
             }
 
+            if (!VALID_BUILDING_IDS.includes(parsedResult.building)) {
+              console.log("Skipping: invalid building", parsedResult.building);
+              await recordPost(link, handle, "invalid_building");
+              continue;
+            }
+
             const saveResult = await saveEventToSupabase(
               parsedResult,
               link,
@@ -520,18 +595,18 @@ async function main() {
 
             if (saveResult === "saved") {
               await recordPost(link, handle, "saved");
-              eventsSaved++;
+              counters.eventsSaved++;
             } else if (saveResult === "duplicate") {
               await recordPost(link, handle, "saved");
             } else {
-              // Deliberately record nothing: the DB write failed, so this post
-              // stays out of scraped_posts and gets retried next run.
-              errors++;
+              // Record nothing: the DB write failed, so this post stays out of
+              // scraped_posts and gets retried next run.
+              counters.errors++;
               console.log("Save failed, will retry next run:", link);
             }
           } catch (err) {
             if (isAuthError(err)) throw err;
-            errors++;
+            counters.errors++;
             console.log(
               "Post failed:",
               link,
@@ -544,28 +619,45 @@ async function main() {
         console.log(`@${handle}: ${handleCaptions}/${handlePosts} captions`);
       } catch (err) {
         if (isAuthError(err)) throw err;
-        errors++;
+        counters.errors++;
         console.log("Handle failed:", handle, err);
         continue;
       } finally {
-        postsVisited += handlePosts;
-        captionsExtracted += handleCaptions;
+        counters.postsVisited += handlePosts;
+        counters.captionsExtracted += handleCaptions;
       }
     }
 
     console.log(`\n=== RUN SUMMARY ===`);
-    console.log(`Posts visited:      ${postsVisited}`);
-    console.log(`Captions extracted: ${captionsExtracted}`);
-    console.log(`AI calls:           ${aiCalls}`);
-    console.log(`Events saved:       ${eventsSaved}`);
-    console.log(`Errors:             ${errors}`);
+    console.log(`Posts visited:      ${counters.postsVisited}`);
+    console.log(`Captions extracted: ${counters.captionsExtracted}`);
+    console.log(`AI calls:           ${counters.aiCalls}`);
+    console.log(`Events saved:       ${counters.eventsSaved}`);
+    console.log(`Errors:             ${counters.errors}`);
 
-    if (postsVisited >= 10 && captionsExtracted === 0) {
+    if (counters.postsVisited >= 10 && counters.captionsExtracted === 0) {
       throw new Error(
         "session expired: zero captions extracted across entire run"
       );
     }
+  } catch (err) {
+    fatalError = err;
+    throw err;
   } finally {
+    let status: "success" | "partial" | "failed_auth" | "failed" = "success";
+
+    if (fatalError) {
+      status = isAuthError(fatalError) ? "failed_auth" : "failed";
+    } else if (counters.errors > 0) {
+      status = "partial";
+    }
+
+    await finishRun(
+      runId,
+      status,
+      counters,
+      fatalError instanceof Error ? fatalError.message : undefined
+    );
     await browser.close();
   }
 }

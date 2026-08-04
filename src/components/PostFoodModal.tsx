@@ -1,63 +1,53 @@
 import { useState } from "react";
 import { buildings } from "@/data/buildings";
-import { FoodEvent } from "@/types/FoodEvent";
-import { supabase } from "@/lib/supabase";
-import { categoryKeywords, FoodCategory } from "@/data/foodCategories";
 
 type Props = {
   isOpen: boolean;
   onClose: () => void;
- onEventCreated: () => Promise<void>;
-}
+  onEventCreated: () => Promise<void>;
+};
 
 const times = generateTimeSlots();
 
-
 export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props) {
-  
-    const [formData, setFormData] = useState({
-      eventName: "",
-      food: "",
-      building: "",
-      startDate: "",
-      endDate: "",
-      startTime: "",
-      endTime: "",
-      host: "",
-      description: "",
-      sourceUrl: "",
-    });
-
-    if (!isOpen) return null;
-
-    function updateField(field: string, value: string) {
-
-      if (field === "startDate" && !formData.endDate) {
-  setFormData({
-    ...formData,
-    startDate: value,
-    endDate: value,
+  const [formData, setFormData] = useState({
+    eventName: "",
+    food: "",
+    building: "",
+    startDate: "",
+    endDate: "",
+    startTime: "",
+    endTime: "",
+    host: "",
+    description: "",
+    sourceUrl: "",
   });
-  return
-      }
+
+  if (!isOpen) return null;
+
+  function updateField(field: string, value: string) {
+    if (field === "startDate" && !formData.endDate) {
+      setFormData({
+        ...formData,
+        startDate: value,
+        endDate: value,
+      });
+      return;
+    }
+
     setFormData({
       ...formData,
       [field]: value,
     });
-
-
   }
 
-    async function handleSubmit(e: React.FormEvent) {
-      e.preventDefault();
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
 
-      const startIndex = times.findIndex((time) => time.value === formData.startTime);
-const endIndex = times.findIndex((time) => time.value === formData.endTime);
+    const startIndex = times.findIndex((t) => t.value === formData.startTime);
+    const endIndex = times.findIndex((t) => t.value === formData.endTime);
 
-      if (
-      formData.startDate === formData.endDate &&
-      endIndex <= startIndex
-    ) {
+    if (formData.startDate === formData.endDate && endIndex <= startIndex) {
       alert("End time must be after start time");
       return;
     }
@@ -70,11 +60,10 @@ const endIndex = times.findIndex((time) => time.value === formData.endTime);
     let sourceUrl = formData.sourceUrl;
 
     if (!sourceUrl.startsWith("http://") && !sourceUrl.startsWith("https://")) {
-        sourceUrl = `https://${sourceUrl}`;
-      }
+      sourceUrl = `https://${sourceUrl}`;
+    }
 
-        try {
-      new URL(sourceUrl);
+    try {
       const url = new URL(sourceUrl);
       if (url.protocol !== "http:" && url.protocol !== "https:") {
         alert("Please enter a valid URL");
@@ -85,44 +74,29 @@ const endIndex = times.findIndex((time) => time.value === formData.endTime);
       return;
     }
 
-    const { data, error } = await supabase
-    .from("food_events")
-    .insert({
-      event_name: formData.eventName,
-      food: formData.food,
-      category: detectFoodCategory(formData.food),
-      building: formData.building,
-      start_date: formData.startDate,
-      end_date: formData.endDate,
-      start_time: formData.startTime,
-      end_time: formData.endTime,
-      host: formData.host,
-      description: formData.description,
-      source_url: sourceUrl,
-      is_verified: false,
-    })
-    .select()
-    .single();
+    const res = await fetch("/api/events", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...formData, sourceUrl }),
+    });
 
-  if (error) {
-    console.error(error);
-    alert("Could not submit event");
-    return;
+  if (!res.ok) {
+  const text = await res.text();
+  console.log("status:", res.status, "body:", text);
+  alert("Could not submit event");
+  return;
+}
+
+    await onEventCreated();
+    onClose();
   }
 
-      await onEventCreated();
-      onClose();
-    }
-
-    return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black/30 px-4 py-8">
+  return (
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center overflow-y-auto bg-black/30 px-4 py-8">
       <div className="timbi-scroll max-h-[70vh] w-full max-w-lg overflow-y-auto rounded-3xl bg-[#fff7eb] p-8 text-left shadow-2xl">
         <div className="mb-6 flex items-start justify-between">
-
           <div>
-            <h2 className="text-3xl font-bold text-[#5f3d26]">
-              Post food
-            </h2>
+            <h2 className="text-3xl font-bold text-[#5f3d26]">Post food</h2>
             <p className="mt-1 text-sm text-[#8c6a52]">
               Help timbi feed campus :3
             </p>
@@ -134,161 +108,154 @@ const endIndex = times.findIndex((time) => time.value === formData.endTime);
           >
             ×
           </button>
-
         </div>
-
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-3">
+            <p className="text-sm font-bold text-[#8c6a52]">What?*</p>
+
+            <input
+              required
+              value={formData.eventName}
+              className="timbi-input"
+              onChange={(e) => updateField("eventName", e.target.value)}
+              placeholder="Event Name"
+            />
+
+            <input
+              required
+              value={formData.food}
+              className="timbi-input"
+              onChange={(e) => updateField("food", e.target.value)}
+              placeholder="Food"
+            />
+          </div>
 
           <div className="space-y-3">
-          <p className="text-sm font-bold text-[#8c6a52]">What?*</p>
+            <p className="text-sm font-bold text-[#8c6a52]">Where?*</p>
 
-          <input 
-          required 
-          value={formData.eventName}
-          className="timbi-input" 
-          onChange={(e) => updateField("eventName", e.target.value)}
-          placeholder="Event Name" />
+            <select
+              required
+              value={formData.building}
+              onChange={(e) => updateField("building", e.target.value)}
+              className="timbi-input"
+            >
+              <option value="" disabled>
+                Building
+              </option>
 
-          <input 
-          required 
-          value={formData.food}
-          className="timbi-input" 
-          onChange={(e) => updateField("food", e.target.value)}
-          placeholder="Food" />
-        </div>
+              {Object.entries(buildings).map(([id, building]) => (
+                <option key={id} value={id}>
+                  {building.name}
+                </option>
+              ))}
+            </select>
+          </div>
 
-        <div className="space-y-3">
-       <p className="text-sm font-bold text-[#8c6a52]">Where?*</p>
+          <div className="space-y-3">
+            <p className="text-sm font-bold text-[#8c6a52]">When?*</p>
 
-          <select 
-          required
-          value={formData.building} 
-          onChange={(e) => updateField("building", e.target.value)} 
-          className="timbi-input">
+            <div className="grid grid-cols-2 gap-3">
+              <input
+                required
+                type="date"
+                value={formData.startDate}
+                onChange={(e) => updateField("startDate", e.target.value)}
+                className="timbi-input"
+              />
 
-            <option value="" disabled>
-              Building
-            </option>
-            
-           {Object.entries(buildings).map(([id, building]) => (
-            <option key={id} value={id}>
-              {building.name}
-            </option>
-          ))}
+              <input
+                required
+                type="date"
+                value={formData.endDate}
+                onChange={(e) => updateField("endDate", e.target.value)}
+                className="timbi-input"
+              />
+            </div>
 
-          </select>
-      </div>
-          
-      
+            <div className="grid grid-cols-2 gap-3">
+              <select
+                required
+                value={formData.startTime}
+                onChange={(e) => updateField("startTime", e.target.value)}
+                className="timbi-input"
+              >
+                <option value="" disabled>
+                  Start time
+                </option>
 
-        <div className="space-y-3">
-        <p className="text-sm font-bold text-[#8c6a52]">When?*</p>
+                {times.map((time) => (
+                  <option key={time.value} value={time.value}>
+                    {time.label}
+                  </option>
+                ))}
+              </select>
 
-<div className="grid grid-cols-2 gap-3">
-        <input
-          required
-          type="date"
-          value={formData.startDate}
-          onChange={(e) => updateField("startDate", e.target.value)}
-          className="timbi-input"
-        />
+              <select
+                required
+                value={formData.endTime}
+                onChange={(e) => updateField("endTime", e.target.value)}
+                className="timbi-input"
+              >
+                <option value="" disabled>
+                  End time
+                </option>
 
-         <input
-          required
-          type="date"
-          value={formData.endDate}
-          onChange={(e) => updateField("endDate", e.target.value)}
-          className="timbi-input"
-        />
-        </div>
+                {times.map((time) => (
+                  <option key={time.value} value={time.value}>
+                    {time.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
 
-      <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-3">
+            <p className="text-sm font-bold text-[#8c6a52]">Who?*</p>
 
-      <select
-      required
-      value={formData.startTime}
-      onChange={(e) => updateField("startTime", e.target.value)}
-      className="timbi-input "
-    >
-      <option value="" disabled>
-        Start time
-      </option>
+            <input
+              value={formData.host}
+              required
+              className="timbi-input"
+              onChange={(e) => updateField("host", e.target.value)}
+              placeholder="Host"
+            />
 
-     {times.map((time) => (
-      <option key={time.value} value={time.value}>
-        {time.label}
-      </option>
-    ))}
-    </select>
+            <input
+              required
+              value={formData.sourceUrl}
+              className="timbi-input"
+              onChange={(e) => updateField("sourceUrl", e.target.value)}
+              placeholder="Source URL"
+            />
+          </div>
 
-    <select
-      required
-      value={formData.endTime}
-      onChange={(e) => updateField("endTime", e.target.value)}
-      className="timbi-input"
-    >
-      <option value="" disabled>
-        End time
-      </option>
+          <div className="space-y-3">
+            <p className="text-sm font-bold text-[#8c6a52]">
+              Additional Details
+            </p>
 
-     {times.map((time) => (
-  <option key={time.value} value={time.value}>
-    {time.label}
-  </option>
-))}
-       </select>
-    </div>
-    </div>
+            <textarea
+              className="timbi-input"
+              placeholder="Description"
+              value={formData.description}
+              onChange={(e) => updateField("description", e.target.value)}
+            />
+          </div>
 
-<div className="space-y-3">
-  <p className="text-sm font-bold text-[#8c6a52]">Who?*</p>
-
-          <input 
-          value={formData.host}
-          required 
-          className="timbi-input" 
-          onChange={(e) => updateField("host", e.target.value)}
-          placeholder="Host" />
-          <input 
-          required 
-          value={formData.sourceUrl}
-          className="timbi-input" 
-          onChange={(e) => updateField("sourceUrl", e.target.value)}
-          placeholder="Source URL" />
-        
-    </div>
-
-    <div className="space-y-3">
-  <p className="text-sm font-bold text-[#8c6a52]">Additional Details</p>
-
-    <textarea 
-          className="timbi-input" 
-          placeholder="Description" 
-          value={formData.description}
-          onChange={(e) => updateField("description", e.target.value)}
-        />
-
-    </div>
-
-
-     <button
+          <button
             type="submit"
             className="w-full rounded-2xl bg-[#ff9f05] px-6 py-4 font-bold text-white shadow-md transition hover:scale-[1.02]"
           >
             submit report
           </button>
-
-      </form>
+        </form>
       </div>
-     </div>
+    </div>
+  );
+}
 
-    );
-
-  }
-  
-
- function generateTimeSlots() {
+function generateTimeSlots() {
   const slots = [];
 
   for (let hour = 0; hour < 24; hour++) {
@@ -310,16 +277,3 @@ const endIndex = times.findIndex((time) => time.value === formData.endTime);
 
   return slots;
 }
-
-  function detectFoodCategory(food: string): FoodCategory {
-  const text = food.toLowerCase();
-
-  for (const [category, keywords] of Object.entries(categoryKeywords)) {
-    if (keywords.some((keyword) => text.includes(keyword))) {
-      return category as FoodCategory;
-    }
-  }
-
-  return "meal";
-}
-  
