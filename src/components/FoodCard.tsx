@@ -11,11 +11,12 @@ type FoodCardProps = {
   location: string
   date: string
   time: string
+  reporter?: string
   isSelected?: boolean
   onClick?: () => void
 }
 
-export default function FoodCard({ event, food, location, date, time, isSelected, onClick }: FoodCardProps) {
+export default function FoodCard({ event, food, location, date, time, reporter, isSelected, onClick }: FoodCardProps) {
   const cardRef = useRef<HTMLDivElement>(null)
 
   const swing = () => {
@@ -52,9 +53,20 @@ export default function FoodCard({ event, food, location, date, time, isSelected
           <h3 className="line-clamp-1 text-lg font-bold text-[#5f3d26]">
             {titleCase(event)}
           </h3>
-          <p className="shrink-0 rounded-full bg-[#fff7eb] px-2 py-0.5 text-xs font-bold text-[#FFA353]">
-            {date}
-          </p>
+          <div className="flex shrink-0  items-end gap-1">
+            <p className="rounded-full bg-[#fff7eb] px-1.25 py-0.5 text-xs font-bold text-[#FFA353]">
+              {date}
+            </p>
+          <span
+          className={`rounded-full px-2 py-0.5 text-[10px] font-semibold ${
+            reporter
+              ? "bg-[#dff0e0] text-[#4a7c59]"
+              : "bg-[#dce9f2] text-[#4a6d85]"
+          }`}
+        >
+          {reporter ? "Student post" : "Auto-found"}
+        </span>
+          </div>
         </div>
 
         <p className="line-clamp-1 text-sm text-[#5f3d26]">{titleCase(food)}</p>

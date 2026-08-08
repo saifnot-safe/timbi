@@ -271,6 +271,28 @@ Allowed building IDs:
 - mb = Music Building
 - vac = Visual Arts Centre
 - kresge = Kresge Building, Kresge Auditorium
+- morrissette = Ronald D. Schmeichel Building, Schmeichel, Morrissette, entrepreneurship building
+- middlesex = Middlesex College, MC
+- alumni = Alumni Hall
+- chem = Chemistry Building
+- bgs = Biological and Geological Sciences Building, BGS
+- fnb = FIMS and Nursing Building, FNB
+- stevenson = Stevenson Hall
+- lawson = Lawson Hall
+- ahb = Arts and Humanities Building
+- elborn = Elborn College
+- threeM = 3M Centre
+- law = Law Building, Josephine Spencer Niblett Law Building
+- alumniStadium = Western Student Alumni Stadium, TD Stadium
+- saugeen = Saugeen-Maitland Hall, Saugeen
+- ontarioHall = Ontario Hall
+- delaware = Delaware Hall
+- perth = Perth Hall
+- essex = Essex Hall
+- londonHall = London Hall
+- medSyd = Medway-Sydenham Hall, Med-Syd
+- elgin = Elgin Hall
+- bayfield = Bayfield Hall
 
 Date Rules:
 - The current year is 2026.

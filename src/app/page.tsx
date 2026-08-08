@@ -42,6 +42,10 @@ export default function Home() {
     });
   }, [events, dateFilter, categoryFilter, buildingFilter]);
 
+  const todayEventCount = useMemo(() => {
+    return events.filter((event) => matchesDateFilter(event, "today")).length;
+  }, [events]);
+
   useEffect(() => {
   if (selectedEventId !== null && !filteredEvents.some((e) => e.id === selectedEventId)) {
     setSelectedEventId(null);
@@ -152,7 +156,11 @@ function handleMobileViewChange(view: "list" | "map") {
 
       <TimbiHeader />
 
-      <HeroSection onEventCreated={loadEvents} />
+      <HeroSection
+        onEventCreated={loadEvents}
+        todayEventCount={todayEventCount}
+        isLoadingEvents={isLoadingEvents}
+      />
 
       <FilterBar
         dateFilter={dateFilter}

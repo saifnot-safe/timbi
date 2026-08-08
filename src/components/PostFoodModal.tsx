@@ -57,22 +57,21 @@ export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props
       return;
     }
 
-    let sourceUrl = formData.sourceUrl;
+    let sourceUrl = formData.sourceUrl.trim();
 
-    if (!sourceUrl.startsWith("http://") && !sourceUrl.startsWith("https://")) {
-      sourceUrl = `https://${sourceUrl}`;
-    }
+if (sourceUrl) {
+  if (!sourceUrl.startsWith("http://") && !sourceUrl.startsWith("https://")) {
+    sourceUrl = `https://${sourceUrl}`;
+  }
 
-    try {
-      const url = new URL(sourceUrl);
-      if (url.protocol !== "http:" && url.protocol !== "https:") {
-        alert("Please enter a valid URL");
-        return;
-      }
-    } catch {
-      alert("Please enter a valid URL");
-      return;
-    }
+  try {
+    new URL(sourceUrl);
+  } catch {
+    alert("Please enter a valid URL");
+    return;
+  }
+}
+
 
     const res = await fetch("/api/events", {
       method: "POST",
@@ -80,10 +79,12 @@ export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props
       body: JSON.stringify({ ...formData, sourceUrl }),
     });
 
-  if (!res.ok) {
-  const text = await res.text();
-  console.log("status:", res.status, "body:", text);
-  alert("Could not submit event");
+if (!res.ok) {
+  const message = await res
+    .json()
+    .then((d) => d.error)
+    .catch(() => null);
+  alert(message ?? "Could not submit event");
   return;
 }
 
@@ -221,19 +222,19 @@ export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props
               placeholder="Host"
             />
 
-            <input
-              required
-              value={formData.sourceUrl}
-              className="timbi-input"
-              onChange={(e) => updateField("sourceUrl", e.target.value)}
-              placeholder="Source URL"
-            />
           </div>
 
           <div className="space-y-3">
             <p className="text-sm font-bold text-[#8c6a52]">
               Additional Details
             </p>
+
+                 <input
+              value={formData.sourceUrl}
+              className="timbi-input"
+              onChange={(e) => updateField("sourceUrl", e.target.value)}
+              placeholder="Source URL"
+            />
 
             <textarea
               className="timbi-input"

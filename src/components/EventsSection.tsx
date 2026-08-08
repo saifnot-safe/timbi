@@ -47,6 +47,7 @@ export default function EventsSection({
         location={buildings[event.building].shortName}
         date={formatEventDate(event)}
         time={formatEventTime(event)}
+        reporter={event.reporter}
         isSelected={selectedEventId === event.id}
         onClick={() => onSelectEvent(event.id)}
       />

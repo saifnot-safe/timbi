@@ -14,6 +14,7 @@ import {
   Clock3,
   User,
   ExternalLink,
+  AlertTriangle
 } from "lucide-react";
 
  type TimbiMapProps = {
@@ -55,9 +56,9 @@ function getPanelAdjustedCenter(lat: number, lng: number) {
   const point = map.project(L.latLng(lat, lng), zoom);
 
   if (isMobile) {
-    point.y += 60;
+    point.y += 70;
   } else {
-    point.x += 130; 
+    point.x += 0;
   }
 
   const adjusted = map.unproject(point, zoom);
@@ -216,28 +217,28 @@ const icon = L.divIcon({
 
    {selectedEvent && selectedBuilding && selectedFood && (
   <div
-    className={`absolute z-[400] bg-white shadow-2xl ${nunito.className}
-      inset-x-0 bottom-0 max-h-[40%] w-full overflow-y-auto rounded-t-3xl p-6
-      lg:inset-x-auto lg:bottom-auto lg:right-0 lg:top-0 lg:h-full lg:max-h-none lg:w-65 lg:rounded-none`}
+    className="timbi-scroll absolute z-[400] rounded-3xl bg-white/90 shadow-2xl backdrop-blur-sm
+      inset-x-3 bottom-3 max-h-[45%] overflow-y-auto p-5
+      lg:inset-x-auto lg:bottom-auto lg:top-4 lg:right-4 lg:w-60 lg:max-h-[calc(100%-2rem)] lg:p-5"
   >
     <h3 className="text-2xl font-bold text-[#5f3d26]">
       {titleCase(selectedEvent.eventName)}
     </h3>
 
-    <p className="mt-3 text-sm text-[#8c6a52]">
+    <p className={`mt-3 text-sm text-[#8c6a52] ${nunito.className}`}>
       {titleCase(selectedEvent.food)}
     </p>
 
     <div className="mt-6 space-y-5 text-[#5f3d26]">
 
       <div className="flex items-center gap-2">
-        <MapPin size={18} className="text-[#FFA353]" />
-        <p>{selectedBuilding.name}</p>
+        <MapPin size={18} className="shrink-0 text-[#FFA353]" />
+        <p className={nunito.className}>{selectedBuilding.name}</p>
       </div>
 
       <div className="flex gap-2 text-[#5f3d26]">
         <Clock3 size={18} className="mt-0.5 shrink-0 text-[#FFA353]" />
-        <div className="whitespace-pre-line">
+        <div className={`whitespace-pre-line ${nunito.className}`}>
           {formatEventDate(selectedEvent)}
           <p className="text-sm text-[#8c6a52]">
             {formatEventTime(selectedEvent)}
@@ -246,25 +247,40 @@ const icon = L.divIcon({
       </div>
 
       <div className="flex items-center gap-2">
-        <User size={18} className="text-[#FFA353]" />
-        <p>{selectedEvent.host}</p>
+        <User size={18} className="shrink-0 text-[#FFA353]" />
+        <p
+  className={`min-w-0 truncate ${nunito.className}`}
+  title={selectedEvent.host}
+>
+  {selectedEvent.host}
+</p>
       </div>
 
       {selectedEvent.description && (
-        <p className="leading-relaxed">{selectedEvent.description}</p>
+        <p className={`leading-relaxed ${nunito.className}`}>{selectedEvent.description}</p>
       )}
 
-      <a
-        href={selectedEvent.sourceUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="mt-6 flex items-center gap-2 font-bold text-[#FFA353] hover:underline"
-      >
-        <ExternalLink size={18} />
-        View Source
-      </a>
+      {selectedEvent.sourceUrl ? (
+        <a
+  
+    href={selectedEvent.sourceUrl}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="mt-6 flex items-center gap-2 font-bold text-[#FFA353] hover:underline"
+  >
+    <ExternalLink size={18} />
+    View Source
+  </a>
+) : (
+  <div className={`mt-6 flex items-center gap-2 font-bold text-[#9a9a9a]`}>
+    <AlertTriangle size={18} className="shrink-0" />
+    No source
+  </div>
+)}
 
     </div>
+
+    
   </div>
 )}
     </div>

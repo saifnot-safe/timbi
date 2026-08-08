@@ -1,9 +1,7 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
 import { categories } from "@/data/foodCategories";
-import { buildings, type BuildingId } from "@/data/buildings";
-import { Building2, ChevronDown } from "lucide-react";
+import BuildingsDropdown from "@/components/BuildingsDropdown";
 
 type DateFilter = "today" | "week" | "all";
 
@@ -30,22 +28,6 @@ export default function FilterBar({
     { label: "All Events", value: "all" },
   ];
 
-  const [buildingMenuOpen, setBuildingMenuOpen] = useState(false);
-  const buildingMenuRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
-      if (
-        buildingMenuRef.current &&
-        !buildingMenuRef.current.contains(e.target as Node)
-      ) {
-        setBuildingMenuOpen(false);
-      }
-    }
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   function toggleCategory(key: string) {
     onCategoryFilterChange(
       categoryFilter.includes(key)
@@ -54,21 +36,8 @@ export default function FilterBar({
     );
   }
 
-  function toggleBuilding(key: string) {
-    onBuildingFilterChange(
-      buildingFilter.includes(key)
-        ? buildingFilter.filter((b) => b !== key)
-        : [...buildingFilter, key]
-    );
-  }
-
-  const buildingEntries = Object.entries(buildings) as [
-    BuildingId,
-    typeof buildings[BuildingId]
-  ][];
-
   return (
-  <div className="mx-auto mt-12 mb-4 max-w-6xl overflow-hidden px-4 lg:px-8">
+  <div className="mx-auto mt-12 mb-4 max-w-6xl px-4 lg:px-8">
       <div className="grid gap-3 lg:grid-cols-[380px_1fr] lg:gap-8">
 
         {/* date filters */}
@@ -114,74 +83,10 @@ export default function FilterBar({
             })}
           </div>
 
-          <div className="relative shrink-0" ref={buildingMenuRef}>
-            <button
-              onClick={() => setBuildingMenuOpen((open) => !open)}
-              className={`flex shrink-0 items-center gap-1.5 rounded-2xl px-3 py-2 text-sm font-bold shadow-sm transition ${
-                buildingFilter.length > 0
-                  ? "bg-[#DA7625] text-white"
-                  : "bg-[#FFA353] text-white hover:bg-[#ff9638]"
-              }`}
-            >
-              <Building2 size={15} />
-              <span>
-                {buildingFilter.length > 0
-                  ? `Buildings (${buildingFilter.length})`
-                  : "Buildings"}
-              </span>
-              <ChevronDown size={15} />
-            </button>
-
-            {buildingMenuOpen && (
-              <div className="timbi-scroll absolute right-0 z-999 mt-2 max-h-72 w-56 overflow-y-auto rounded-2xl border-2 border-[#FFE0B8] bg-[#fff7eb] p-2 shadow-lg">
-                {buildingFilter.length > 0 && (
-                  <button
-                    onClick={() => onBuildingFilterChange([])}
-                    className="mb-1 w-full rounded-lg px-3 py-1.5 text-left text-sm font-bold text-[#DA7625] hover:bg-[#FFF3E2]"
-                  >
-                    Clear all
-                  </button>
-                )}
-                {buildingEntries.map(([key, building]) => {
-                  const isActive = buildingFilter.includes(key);
-                  return (
-                    <label
-                      key={key}
-                      className="flex cursor-pointer items-center gap-2 rounded-lg px-3 py-1.5 text-sm text-[#5f3d26] hover:bg-[#FFF3E2]"
-                    >
-                      <input
-                        type="checkbox"
-                        checked={isActive}
-                        onChange={() => toggleBuilding(key)}
-                        className="peer sr-only"
-                      />
-                      <span
-                        className={`flex h-3 w-3 shrink-0 items-center justify-center rounded-sm border-2 transition ${
-                          isActive
-                            ? "border-[#FFA353] bg-[#FFA353]"
-                            : "border-[#FFA353] bg-white"
-                        }`}
-                      >
-                        {isActive && (
-                          <svg
-                            viewBox="0 0 16 16"
-                            className="h-3 w-3 fill-none stroke-white stroke-[2.5]"
-                          >
-                            <path
-                              d="M3 8l3.5 3.5L13 5"
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            />
-                          </svg>
-                        )}
-                      </span>
-                      {building.shortName}
-                    </label>
-                  );
-                })}
-              </div>
-            )}
-          </div>
+          <BuildingsDropdown
+            buildingFilter={buildingFilter}
+            onBuildingFilterChange={onBuildingFilterChange}
+          />
         </div>
 
       </div>
