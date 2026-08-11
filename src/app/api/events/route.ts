@@ -13,6 +13,7 @@ const MAX_POSTS_PER_HOUR = 5;
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
+
 function detectFoodCategory(food: string): FoodCategory {
   const text = food.toLowerCase();
   for (const [category, keywords] of Object.entries(categoryKeywords)) {
@@ -26,6 +27,14 @@ type ModerationResult = {
   isAbusive: boolean;
   reason: string;
 };
+
+function normalizeQuotes(s: string) {
+  return s
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"');
+}
+
+
 
 // Returns null if the check couldn't run. Callers should treat null as "allow" —
 // a moderation outage shouldn't take the whole submission flow down with it.
@@ -114,6 +123,7 @@ function isAllowedHost(hostname: string) {
 }
 
 export async function POST(request: Request) {
+    
   const { userId } = await auth();
   if (!userId) {
     return NextResponse.json({ error: "Sign in to post" }, { status: 401 });
@@ -121,11 +131,11 @@ export async function POST(request: Request) {
 
   const body = await request.json();
 
-  const eventName = String(body.eventName ?? "").trim().slice(0, 120);
-  const food = String(body.food ?? "").trim().slice(0, 120);
-  const host = String(body.host ?? "").trim().slice(0, 80);
-  const description = String(body.description ?? "").trim().slice(0, 300);
-  const building = String(body.building ?? "");
+  const eventName = normalizeQuotes(String(body.eventName ?? "").trim()).slice(0, 120);
+const food = normalizeQuotes(String(body.food ?? "").trim()).slice(0, 120);
+const host = normalizeQuotes(String(body.host ?? "").trim()).slice(0, 80);
+const description = normalizeQuotes(String(body.description ?? "").trim()).slice(0, 300);
+const building = String(body.building ?? "");
   const { startDate, endDate, startTime, endTime } = body;
 
   if (!eventName || !food || !host) {
