@@ -1,6 +1,7 @@
 import {Gaegu, Nunito} from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
+import { Metadata } from "next";
 
 const gaegu = Gaegu({
   variable: "--font-gaegu",
@@ -13,6 +14,11 @@ const nunito = Nunito({
   subsets: ["latin"],
   weight: "400",
 });
+
+export const metadata: Metadata = {
+  title: "Timbi | free food at Western",
+  description: "Find free food events on campus at Western University.",
+};
 
 export default function RootLayout({
   children,

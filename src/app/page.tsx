@@ -46,6 +46,11 @@ export default function Home() {
     return events.filter((event) => matchesDateFilter(event, "today")).length;
   }, [events]);
 
+  const weekEventCount = useMemo(
+  () => events.filter((e) => matchesDateFilter(e, "week")).length,
+  [events]
+);
+
   useEffect(() => {
   if (selectedEventId !== null && !filteredEvents.some((e) => e.id === selectedEventId)) {
     setSelectedEventId(null);
@@ -156,9 +161,11 @@ function handleMobileViewChange(view: "list" | "map") {
 
       <TimbiHeader />
 
+
       <HeroSection
         onEventCreated={loadEvents}
         todayEventCount={todayEventCount}
+        weekEventCount={weekEventCount}
         isLoadingEvents={isLoadingEvents}
       />
 

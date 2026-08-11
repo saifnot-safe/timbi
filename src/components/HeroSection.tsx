@@ -9,19 +9,32 @@ import { SignInButton, useUser } from "@clerk/nextjs";
 type HeroSectionProps = {
   onEventCreated: () => Promise<void>;
   todayEventCount: number;
+  weekEventCount: number;
   isLoadingEvents: boolean;
-}
+};
 
-export default function HeroSection({ onEventCreated, todayEventCount, isLoadingEvents }: HeroSectionProps) {
+export default function HeroSection({
+  onEventCreated,
+  todayEventCount,
+  weekEventCount,
+  isLoadingEvents,
+}: HeroSectionProps) {
   const [isPostOpen, setIsPostOpen] = useState(false);
   const { isSignedIn, user } = useUser();
 
-  const eventCountMessage = isLoadingEvents
-    ? null
-    : todayEventCount === 0
-    ? "No free food on campus today — check back soon"
-    : `${todayEventCount} free food event${todayEventCount === 1 ? "" : "s"} on campus today`;
+  let eventCountMessage = null;
 
+  if (!isLoadingEvents) {
+    if (todayEventCount > 0) {
+      eventCountMessage = `${todayEventCount} free food event${
+        todayEventCount === 1 ? "" : "s"
+      } on campus right meow`;
+    } else if (weekEventCount > 0) {
+      eventCountMessage = `Nothing right meow, but ${weekEventCount} coming up this week`;
+    } else {
+      eventCountMessage = "Timbi's still sniffing around, nothing on campus yet";
+    }
+  }
   const email = user?.primaryEmailAddress?.emailAddress.toLowerCase();
   const canPost = email?.endsWith("@uwo.ca");
   const postButtonClass =
