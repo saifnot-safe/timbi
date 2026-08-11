@@ -10,6 +10,7 @@ type Props = {
 const times = generateTimeSlots();
 
 export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     eventName: "",
     food: "",
@@ -44,52 +45,58 @@ export default function PostFoodModal({ isOpen, onClose, onEventCreated }: Props
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
-    const startIndex = times.findIndex((t) => t.value === formData.startTime);
-    const endIndex = times.findIndex((t) => t.value === formData.endTime);
+    if (isSubmitting) return;
+    setIsSubmitting(true);
 
-    if (formData.startDate === formData.endDate && endIndex <= startIndex) {
-      alert("End time must be after start time");
-      return;
+    try {
+      const startIndex = times.findIndex((t) => t.value === formData.startTime);
+      const endIndex = times.findIndex((t) => t.value === formData.endTime);
+
+      if (formData.startDate === formData.endDate && endIndex <= startIndex) {
+        alert("End time must be after start time");
+        return;
+      }
+
+      if (formData.endDate < formData.startDate) {
+        alert("End date must be after start date");
+        return;
+      }
+
+      let sourceUrl = formData.sourceUrl.trim();
+
+      if (sourceUrl) {
+        if (!sourceUrl.startsWith("http://") && !sourceUrl.startsWith("https://")) {
+          sourceUrl = `https://${sourceUrl}`;
+        }
+
+        try {
+          new URL(sourceUrl);
+        } catch {
+          alert("Please enter a valid URL");
+          return;
+        }
+      }
+
+      const res = await fetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...formData, sourceUrl }),
+      });
+
+      if (!res.ok) {
+        const message = await res
+          .json()
+          .then((d) => d.error)
+          .catch(() => null);
+        alert(message ?? "Could not submit event");
+        return;
+      }
+
+      await onEventCreated();
+      onClose();
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (formData.endDate < formData.startDate) {
-      alert("End date must be after start date");
-      return;
-    }
-
-    let sourceUrl = formData.sourceUrl.trim();
-
-if (sourceUrl) {
-  if (!sourceUrl.startsWith("http://") && !sourceUrl.startsWith("https://")) {
-    sourceUrl = `https://${sourceUrl}`;
-  }
-
-  try {
-    new URL(sourceUrl);
-  } catch {
-    alert("Please enter a valid URL");
-    return;
-  }
-}
-
-
-    const res = await fetch("/api/events", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...formData, sourceUrl }),
-    });
-
-if (!res.ok) {
-  const message = await res
-    .json()
-    .then((d) => d.error)
-    .catch(() => null);
-  alert(message ?? "Could not submit event");
-  return;
-}
-
-    await onEventCreated();
-    onClose();
   }
 
   return (
@@ -221,7 +228,6 @@ if (!res.ok) {
               onChange={(e) => updateField("host", e.target.value)}
               placeholder="Host"
             />
-
           </div>
 
           <div className="space-y-3">
@@ -229,11 +235,11 @@ if (!res.ok) {
               Additional Details
             </p>
 
-                 <input
+            <input
               value={formData.sourceUrl}
               className="timbi-input"
               onChange={(e) => updateField("sourceUrl", e.target.value)}
-              placeholder="Source URL"
+              placeholder="Source URL (optional)"
             />
 
             <textarea
@@ -246,9 +252,10 @@ if (!res.ok) {
 
           <button
             type="submit"
-            className="w-full rounded-2xl bg-[#ff9f05] px-6 py-4 font-bold text-white shadow-md transition hover:scale-[1.02]"
+            disabled={isSubmitting}
+            className="w-full rounded-2xl bg-[#ff9f05] px-6 py-4 font-bold text-white shadow-md transition hover:scale-[1.02] disabled:opacity-60 disabled:hover:scale-100"
           >
-            submit report
+            {isSubmitting ? "Posting..." : "submit report"}
           </button>
         </form>
       </div>

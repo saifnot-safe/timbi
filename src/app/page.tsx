@@ -181,7 +181,7 @@ function handleMobileViewChange(view: "list" | "map") {
         <section id="events" className="scroll-mt-34 mx-auto max-w-6xl px-8 pb-30">
 
           {/* mobile-only list/map toggle */}
-          <div className="relative flex w-full rounded-full bg-[#FFE3BE] p-1 lg:hidden">
+          <div className="relative mb-4 flex w-full rounded-full bg-[#FFE3BE] p-1 lg:hidden">
   <div
     className={`absolute inset-y-1 w-1/2 rounded-full bg-[#FFA353] shadow-sm transition-transform duration-200 ${
       mobileView === "map" ? "translate-x-full" : "translate-x-0"
