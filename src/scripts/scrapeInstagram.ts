@@ -443,22 +443,18 @@ async function saveEventToSupabase(
   };
 
   const { data, error } = await supabase
-    .from("food_events")
-    .upsert(eventToInsert, {
-      onConflict: "source_url",
-      ignoreDuplicates: true,
-    })
-    .select();
+  .from("food_events")
+  .insert(eventToInsert)
+  .select();
 
   if (error) {
-    console.log("Supabase save error:", error.message);
-    return "error";
-  }
-
-  if (!data || data.length === 0) {
+  if (error.code === "23505") {
     console.log("Duplicate skipped:", sourceUrl);
     return "duplicate";
   }
+  console.log("Supabase save error:", error.message);
+  return "error";
+}
 
   console.log("Saved to Supabase:", data[0]);
   return "saved";
