@@ -456,7 +456,7 @@ async function saveEventToSupabase(
   return "error";
 }
 
-  console.log("Saved to Supabase:", data[0]);
+console.log("Saved to Supabase:", data?.[0]);
   return "saved";
 }
 
