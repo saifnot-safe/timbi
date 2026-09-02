@@ -132,9 +132,9 @@ const [animatingOutId, setAnimatingOutId] = useState<number | null>(null);
         className="h-full w-full"
       >
         <TileLayer
-            attribution='&copy; OpenStreetMap &copy; CARTO'
-            url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
-        />        
+          attribution='&copy; OpenStreetMap &copy; CARTO'
+          url={`https://basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png?key=${process.env.NEXT_PUBLIC_CARTO_KEY}`}
+        />     
 
   {events.map((event) => {
   const building = buildings[event.building]
