@@ -16,6 +16,10 @@ const FEED_URL = "https://www.uwo.ca/events/_data/current-live.json";
 
 const VALID_BUILDING_IDS = Object.keys(buildings);
 
+// How far ahead to bother saving. Keeps monthly recurring events (corn soup
+// lunches run through April) from flooding the map with near-identical cards.
+const HORIZON_DAYS = 28;
+
 const foodKeywords = [
   "food", "pizza", "snack", "coffee", "donut", "refreshment",
   "lunch", "dinner", "breakfast", "cookie", "boba", "pancake",
@@ -423,6 +427,12 @@ async function main() {
 
     const today = getLocalDateKey();
 
+    const horizon = new Date();
+    horizon.setDate(horizon.getDate() + HORIZON_DAYS);
+    const horizonKey = getLocalDateKey(horizon);
+
+    console.log(`Considering events from ${today} to ${horizonKey}`);
+
     for (const event of allEvents) {
       try {
         const sourceUrl = event.url;
@@ -436,6 +446,10 @@ async function main() {
 
         // The feed includes the previous month, so most entries are in the past.
         if (start.date < today) continue;
+
+        // Beyond the horizon: deliberately record nothing, so it gets picked
+        // up on a later run once the date comes closer.
+        if (start.date > horizonKey) continue;
 
         if (!isForStudents(event)) continue;
 

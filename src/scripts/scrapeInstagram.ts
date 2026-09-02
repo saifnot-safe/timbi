@@ -681,6 +681,16 @@ async function main() {
 }
 
 main().catch((error) => {
+
+  const today = getLocalDateKey();
+
+const horizon = new Date();
+horizon.setDate(horizon.getDate() + 28);
+const horizonKey = getLocalDateKey(horizon);
+
+for (const event of allEvents) {
+
+  
   console.error("Scraper failed:", error);
   process.exitCode = 1;
 });
