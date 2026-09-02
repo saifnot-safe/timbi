@@ -34,13 +34,20 @@ export default function Home() {
   const [buildingFilter, setBuildingFilter] = useState<string[]>([]);
 
   const filteredEvents = useMemo(() => {
-    return events.filter((event) => {
-      if (!matchesDateFilter(event, dateFilter)) return false;
-      if (categoryFilter.length && !categoryFilter.includes(event.category)) return false;
-      if (buildingFilter.length && !buildingFilter.includes(event.building)) return false;
-      return true;
-    });
-  }, [events, dateFilter, categoryFilter, buildingFilter]);
+  const matches = events.filter((event) => {
+    if (!matchesDateFilter(event, dateFilter)) return false;
+    if (categoryFilter.length && !categoryFilter.includes(event.category)) return false;
+    if (buildingFilter.length && !buildingFilter.includes(event.building)) return false;
+    return true;
+  });
+
+  return matches.sort((a, b) => {
+    if (a.startDate !== b.startDate) {
+      return a.startDate < b.startDate ? -1 : 1;
+    }
+    return (a.startTime ?? "").localeCompare(b.startTime ?? "");
+  });
+}, [events, dateFilter, categoryFilter, buildingFilter]);
 
   const todayEventCount = useMemo(() => {
     return events.filter((event) => matchesDateFilter(event, "today")).length;
