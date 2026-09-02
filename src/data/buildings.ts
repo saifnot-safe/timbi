@@ -38,10 +38,7 @@ export const buildings = {
   weldon: {
     name: "Weldon Library",
     shortName: "Weldon",
-    aliases: [
-        "weldon",
-        "weldon library"
-    ],
+    aliases: ["weldon", "weldon library", "wl "],
     lat: 43.0080,
     lng: -81.2755,
   },
@@ -49,13 +46,17 @@ export const buildings = {
   ucc: {
     name: "University Community Centre",
     shortName: "UCC",
-    aliases: [
-      "ucc",
-      "university community centre",
-    ],
+    aliases: ["ucc", "university community centre", "mckellar theatre", "concrete beach"],
     lat: 43.0087,
     lng: -81.2762,
   },
+
+  wssb: {
+  name: "Western Student Services Building",
+  shortName: "WSSB",
+  aliases: ["wssb", "student services building", "western student services"],
+  lat: 43.0081, lng: -81.2766,
+},
 
    natSci: {
     name: "Natural Sciences Centre",
@@ -137,7 +138,7 @@ talbot: {
 uc: {
   name: "University College",
   shortName: "UC",
-  aliases: ["uc", "university college"],
+  aliases: ["uc", "university college", "conron hall", "beryl ivey garden"],
   lat: 43.0086,
   lng: -81.2733,
 },
@@ -177,7 +178,7 @@ pab: {
 mb: {
   name: "Music Building",
   shortName: "MB",
-  aliases: ["mb", "music building", "music"],
+  aliases: ["mb", "music building", "music", "von kuster hall", "paul davenport theatre", "conron hall"],
   lat: 43.0067,
   lng: -81.2710,
 },
@@ -217,8 +218,8 @@ kresge: {
       "entrepreneurship building",
       "ronald d. schmeichel building",
     ],
-    lat: 43.0082, 
-    lng: -81.2766,
+    lat: 43.0074, 
+    lng: -81.2762, 
   },
 
   middlesex: {
