@@ -29,7 +29,8 @@ const clubHandles = [
   "westernboardgamesclub",
   "uwoteaclub",
   "westernfoodies",
-  "uwochemengclub"
+  "uwochemengclub",
+  "womeninenguwo",
 ];
 
 const foodKeywords = [
