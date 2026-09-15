@@ -31,6 +31,7 @@ const clubHandles = [
   "westernfoodies",
   "uwochemengclub",
   "womeninenguwo",
+  "westerntsi"
 ];
 
 const foodKeywords = [
