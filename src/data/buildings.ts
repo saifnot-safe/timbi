@@ -9,8 +9,18 @@ export const buildings = {
       "eng building",
       "amit chakma engineering building",
     ],
-    lat: 43.0042, 
-    lng: -81.2760,
+    lat: 43.0043,
+    lng: -81.2763,
+  },
+
+  thompson: {
+    name: "Thompson Engineering Building",
+    shortName: "TEB",
+    aliases: [
+      "thompson", "teb", "thompson engineering building"
+    ],
+    lat: 43.0043,
+    lng: -81.2753,
   },
 
   spencer: {
