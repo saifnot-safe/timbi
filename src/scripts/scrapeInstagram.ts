@@ -31,7 +31,18 @@ const clubHandles = [
   "westernfoodies",
   "uwochemengclub",
   "womeninenguwo",
-  "westerntsi"
+  "westerntsi",
+  "western.ssc",
+  "fhssc_",
+  "uwochemcar",
+  "ahscwesternu",
+  "westernuontariohall",
+  "westernusaugeenhall",
+  "westernuelginhall",
+  "westernualumnihouse",
+  "westernudelawarehall",
+  "westernulambtonhall",
+
 ];
 
 const foodKeywords = [
@@ -254,6 +265,7 @@ Building Rules:
 
 Allowed building IDs:
 - aceb = Amit Chakma Engineering Building, ACEB, engineering building, eng building
+- thompson = Thompson Engineering Building, TEB
 - spencer = Spencer Engineering Building, SEB
 - ues = UES Lounge, Undergraduate Engineering Society
 - weldon = Weldon Library
