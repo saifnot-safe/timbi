@@ -18,6 +18,7 @@ const supabase = createClient(
 
 const clubHandles = [
   "westernusc_events",
+  "morrissette.entrepreneurship",
   "healthscisophs",
   "pangea.uwo",
   "uwowicsa",
@@ -34,6 +35,8 @@ const clubHandles = [
   "womeninenguwo",
   "womeninscienceuwo",
   "westerntsi",
+  "westerndevsociety",
+  "westerncybersociety",
   "western.ssc",
   "fhssc_",
   "westernhssa",
