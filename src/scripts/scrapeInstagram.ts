@@ -40,7 +40,7 @@ const clubHandles = [
   "western.ssc",
   "fhssc_",
   "westernhssa",
-  "uwochemcar",
+  "uwochemecar",
   "ahscwesternu",
   "uwogamedevs",
   "mahjongclubuwo",
