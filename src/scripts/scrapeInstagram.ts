@@ -21,7 +21,7 @@ const clubHandles = [
   "healthscisophs",
   "pangea.uwo",
   "uwowicsa",
-  "hiphopwestern"
+  "hiphopwestern",
   "ueo.bioethicssociety",
   "speakwestern",
   "westerndebate",
