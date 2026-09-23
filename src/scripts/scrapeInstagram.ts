@@ -547,6 +547,7 @@ async function main() {
               .catch(() => "");
 
             const caption = extractCaption(bodyText, handle);
+             console.log("CAPTION:", caption || "[none]");
 
             const imageUrls = await page
               .locator("img")
@@ -584,7 +585,7 @@ async function main() {
 
             console.log("\n======================");
             console.log("POST:", link);
-            console.log("CAPTION:", caption);
+           
             console.log("IMAGES:", imageUrls.slice(0, 3));
 
             counters.aiCalls++;
