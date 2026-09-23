@@ -23,7 +23,7 @@ const clubHandles = [
   "pangea.uwo",
   "uwowicsa",
   "hiphopwestern",
-  "ueo.bioethicssociety",
+  "uwo.bioethicssociety",
   "speakwestern",
   "westerndebate",
   "caisawestern",
@@ -134,34 +134,47 @@ function isAuthError(err: unknown) {
   return err instanceof Error && err.message.includes(AUTH_ERROR);
 }
 
+const TIMESTAMP_RE = /^\d+\s*[smhdw]$/i;
+
+function isPostMetaLine(line: string | undefined): boolean {
+  if (!line) return false;
+  const text = line.trim();
+  return (
+    TIMESTAMP_RE.test(text) ||
+    /^edited$/i.test(text) ||
+    text === "•" ||
+    text === "·"
+  );
+}
+
 function extractCaption(bodyText: string, handle: string) {
   const lines = bodyText
     .split("\n")
     .map((line) => line.trim())
     .filter(Boolean);
 
-  const handleIndex = lines.findIndex((line, index) => {
-    return (
-      line === handle &&
-      (lines[index + 1]?.match(/^\d+[smhdw]$/) ||
-        lines[index + 2]?.match(/^\d+[smhdw]$/))
-    );
-  });
+  // Only check the line immediately after. Looking further ahead matches the
+  // page header rather than the post author.
+  const handleIndex = lines.findIndex(
+    (line, index) => line === handle && isPostMetaLine(lines[index + 1])
+  );
 
   if (handleIndex === -1) return "";
 
-  const startIndex = lines[handleIndex + 1]?.match(/^\d+[smhdw]$/)
-    ? handleIndex + 2
-    : handleIndex + 3;
+  // Skip every consecutive meta line: "Edited", "•", "4h" can all stack up.
+  let metaIndex = handleIndex;
+  while (metaIndex + 1 < lines.length && isPostMetaLine(lines[metaIndex + 1])) {
+    metaIndex++;
+  }
 
   const captionLines: string[] = [];
 
-  for (let i = startIndex; i < lines.length; i++) {
+  for (let i = metaIndex + 1; i < lines.length; i++) {
     const line = lines[i];
 
     if (
-      lines[i + 1]?.match(/^\d+[smhdw]$/) ||
-      line.match(/^\d+[smhdw]$/) ||
+      isPostMetaLine(lines[i + 1]) ||
+      isPostMetaLine(line) ||
       line === "Reply" ||
       line.includes("likes") ||
       line.includes("Liked by") ||
@@ -256,6 +269,14 @@ General Rules:
 - If the event is one day, startDate and endDate should be the same.
 - If it spans multiple days continuously, isContinuous should be true.
 - If it repeats daily at the same time, isContinuous should be false.
+
+eventName Rules:
+- include the club or host name so the event is identifiable out of context
+- "Fall AGM" -> "HipHop Western Fall AGM"
+- "Games Night" -> "Tea Club Games Night"
+- if the caption does not name the host, use the Instagram handle's club name
+- keep it under 50 characters
+- do not invent a host that isn't implied by the post
 
 Category Rules:
 - pizza = pizza or slices
@@ -546,8 +567,9 @@ async function main() {
               .innerText()
               .catch(() => "");
 
+
             const caption = extractCaption(bodyText, handle);
-             console.log("CAPTION:", caption || "[none]");
+
 
             const imageUrls = await page
               .locator("img")
@@ -585,7 +607,7 @@ async function main() {
 
             console.log("\n======================");
             console.log("POST:", link);
-           
+            console.log("CAPTION:", caption);
             console.log("IMAGES:", imageUrls.slice(0, 3));
 
             counters.aiCalls++;
