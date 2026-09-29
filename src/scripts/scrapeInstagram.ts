@@ -26,6 +26,7 @@ const clubHandles = [
   "uwo.bioethicssociety",
   "speakwestern",
   "westerndebate",
+  "iveyfintech",
   "caisawestern",
   "bsawestern",
   "westernboardgamesclub",
