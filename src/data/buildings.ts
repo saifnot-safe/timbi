@@ -227,6 +227,7 @@ kresge: {
       "morrisette",
       "entrepreneurship building",
       "ronald d. schmeichel building",
+      "Collaboration space"
     ],
     lat: 43.0074, 
     lng: -81.2762, 
