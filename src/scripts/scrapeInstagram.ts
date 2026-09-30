@@ -39,6 +39,7 @@ const clubHandles = [
   "westerndevsociety",
   "westerncybersociety",
   "western.ssc",
+  "h4hwesternuniversity",
   "fhssc_",
   "westernhssa",
   "uwochemecar",
