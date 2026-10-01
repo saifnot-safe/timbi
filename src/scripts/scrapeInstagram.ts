@@ -47,6 +47,7 @@ const clubHandles = [
   "uwogamedevs",
   "mahjongclubuwo",
   "westernirc",
+  "unicef_western",
   "eng.wellness.force",
   "uwo.psa",
   "westernuontariohall",
