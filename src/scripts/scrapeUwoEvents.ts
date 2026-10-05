@@ -151,19 +151,19 @@ function matchBuildingId(locationText: string): string | null {
   if (!locationText) return null;
   const text = locationText.toLowerCase();
 
-  for (const [id, building] of Object.entries(buildings)) {
-    const candidates = [
-      building.name.toLowerCase(),
-      building.shortName.toLowerCase(),
-      ...building.aliases.map((a) => a.toLowerCase()),
-    ];
+  const candidates: { id: string; term: string }[] = [];
 
-    if (candidates.some((c) => c.length > 2 && text.includes(c))) {
-      return id;
+  for (const [id, building] of Object.entries(buildings)) {
+    for (const term of [building.name, building.shortName, ...building.aliases]) {
+      if (term.length > 2) candidates.push({ id, term: term.toLowerCase() });
     }
   }
 
-  return null;
+  // Longest match wins, so "alumni house" beats the bare "alumni" alias.
+  candidates.sort((a, b) => b.term.length - a.term.length);
+
+  const hit = candidates.find((c) => text.includes(c.term));
+  return hit?.id ?? null;
 }
 
 // ---------------------------------------------------------------------------

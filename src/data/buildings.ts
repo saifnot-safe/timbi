@@ -414,7 +414,7 @@ kresge: {
      name: "Alumni House",
     aliases: ["alumni house"],
     lat: 43.0082,
-    lng: -81.2625
+    lng: -81.2625,
 
   }
 }
