@@ -411,7 +411,8 @@ kresge: {
   },
 
   alumniHouse: {
-     name: "Alumni House",
+    name: "Alumni House",
+    shortName: "Alumni House",
     aliases: ["alumni house"],
     lat: 43.0082,
     lng: -81.2625,
