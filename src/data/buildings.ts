@@ -244,7 +244,7 @@ kresge: {
   alumni: {
     name: "Alumni Hall",
     shortName: "Alumni Hall",
-    aliases: ["alumni hall", "alumni"],
+    aliases: ["alumni hall"],
     lat: 43.0059, 
     lng: -81.2745,
   },
@@ -409,6 +409,14 @@ kresge: {
     lat: 43.0127, 
     lng: -81.2787,
   },
+
+  alumniHouse: {
+     name: "Alumni House",
+    aliases: ["alumni house"],
+    lat: 43.0082,
+    lng: -81.2625
+
+  }
 }
 
 export type BuildingId = keyof typeof buildings
