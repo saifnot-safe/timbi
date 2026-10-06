@@ -51,6 +51,8 @@ const clubHandles = [
   "we.autopilot",
   "eng.wellness.force",
   "uwo.psa",
+  "hosawestern",
+  "uwohsa",
   "westernuontariohall",
   "westernusaugeenhall",
   "westernuelginhall",
