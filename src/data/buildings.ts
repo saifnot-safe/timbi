@@ -241,7 +241,7 @@ kresge: {
     lng: -81.2701,
   },
 
-  alumni: {
+  alumniHall: {
     name: "Alumni Hall",
     shortName: "Alumni Hall",
     aliases: ["alumni hall"],

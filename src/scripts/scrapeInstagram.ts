@@ -331,7 +331,7 @@ Allowed building IDs:
 - kresge = Kresge Building, Kresge Auditorium
 - morrissette = Ronald D. Schmeichel Building, Schmeichel, Morrissette, entrepreneurship building
 - middlesex = Middlesex College, MC
-- alumni = Alumni Hall
+- alumniHall = Alumni Hall
 - chem = Chemistry Building
 - bgs = Biological and Geological Sciences Building, BGS
 - fnb = FIMS and Nursing Building, FNB
@@ -351,6 +351,7 @@ Allowed building IDs:
 - medSyd = Medway-Sydenham Hall, Med-Syd
 - elgin = Elgin Hall
 - bayfield = Bayfield Hall
+- alumniHouse = Alumni House
 
 Date Rules:
 - The current year is 2026.
