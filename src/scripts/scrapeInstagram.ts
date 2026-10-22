@@ -49,6 +49,7 @@ const clubHandles = [
   "uwo.sass",
   "bmsawestern",
   "ocsophs",
+  "uwosalsa",
   "westernhssa",
   "uwochemecar",
   "ahscwesternu",
