@@ -41,6 +41,8 @@ const clubHandles = [
   "western.ssc",
   "h4hwesternuniversity",
   "fhssc_",
+  "pilateswestern",
+  "uwo_tesa",
   "westernhssa",
   "uwochemecar",
   "ahscwesternu",
