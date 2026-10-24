@@ -62,6 +62,8 @@ const clubHandles = [
   "eng.wellness.force",
   "uwoslavic",
   "uwo.psa",
+  "csuswestern",
+  "bedazzle.uwo",
   "hosawestern",
   "uwohsa",
   "libyansuwo",
