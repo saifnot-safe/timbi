@@ -56,7 +56,7 @@ export const buildings = {
   ucc: {
     name: "University Community Centre",
     shortName: "UCC",
-    aliases: ["ucc", "university community centre", "mckellar theatre", "concrete beach"],
+    aliases: ["ucc", "university community centre", "mckellar theatre", "concrete beach", "usc club space", "mustang lounge","the wave"],
     lat: 43.0087,
     lng: -81.2762,
   },

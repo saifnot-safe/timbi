@@ -326,7 +326,7 @@ Allowed building IDs:
 - spencer = Spencer Engineering Building, SEB
 - ues = UES Lounge, Undergraduate Engineering Society
 - weldon = Weldon Library
-- ucc = University Community Centre, UCC, Mustang Lounge, Mustang Lounge West
+- ucc = University Community Centre, UCC, Mustang Lounge, Mustang Lounge West, usc club space, concrete beach, mckellar theatre, the wave
 - natSci = Natural Sciences Centre, NSC, Nat Sci
 - taylor = Taylor Library
 - socialSci = Social Science Centre, SSC, Social Sci
