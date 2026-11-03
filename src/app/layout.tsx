@@ -2,6 +2,8 @@ import {Gaegu, Nunito} from "next/font/google";
 import "./globals.css";
 import { ClerkProvider } from "@clerk/nextjs";
 import { Metadata } from "next";
+import { Analytics } from "@vercel/analytics/next";
+
 
 const gaegu = Gaegu({
   variable: "--font-gaegu",
@@ -55,6 +57,8 @@ export default function RootLayout({
       <html lang="en">
         <body className={`${gaegu.variable} ${nunito.variable} ${gaegu.className}`}>
           {children}
+          
+        <Analytics />
         </body>
       </html>
     </ClerkProvider>
