@@ -62,6 +62,7 @@ const clubHandles = [
   "unicef_western",
   "we.autopilot",
   "eng.wellness.force",
+  "eng.sophs",
   "uwoslavic",
   "uwo.psa",
   "csuswestern",
