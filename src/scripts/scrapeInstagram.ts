@@ -572,7 +572,7 @@ async function main() {
         });
         assertInstagramSession(page);
 
-        await page.waitForTimeout(5000);
+        await page.waitForTimeout(3000);
 
         const allLinks = await page
           .locator('a[href*="/p/"], a[href*="/reel/"]')
@@ -588,7 +588,7 @@ async function main() {
           try {
             await page.goto(link, { waitUntil: "domcontentloaded" });
             assertInstagramSession(page);
-            await page.waitForTimeout(4000);
+            await page.waitForTimeout(2500);
             handlePosts++;
 
             const bodyText = await page
