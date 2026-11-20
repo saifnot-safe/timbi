@@ -52,6 +52,8 @@ const clubHandles = [
   "ocsophs",
   "uwosalsa",
   "notionatuwo",
+  "peawestern",
+  "westernrobloxclub",
   "westernhssa",
   "uwochemecar",
   "ahscwesternu",
