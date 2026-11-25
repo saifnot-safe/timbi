@@ -73,6 +73,7 @@ const clubHandles = [
   "uwohsa",
   "libyansuwo",
   "tcc_western",
+  "westernchessclub",
   "ssscwestern",
   "chemclubuwo",
   "bflwestern",
